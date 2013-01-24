@@ -16,7 +16,7 @@ class Scala extends FunSuite {
   new File(tmpDir + "/test/sub1").mkdir()
   val sub2 = new File(tmpDir + "/test/sub2");
   sub2.mkdir()
-  val subFile = new File(sub2 + "/testfile")
+  val subFile = new File(sub2 + "/testfile.scala")
   subFile.createNewFile();
   assert(subFile.exists())
   val fw = new FileWriter(subFile);
@@ -33,5 +33,16 @@ class Scala extends FunSuite {
       val extracted = fe.extract(de)
       assert(extracted===Set("test {zero(number(hoi))} testend", "test {one(number(hoi))} testend"))
     })
+  }
+  
+  test("function call"){
+    val funcFile = new File(tmpDir+"/funcFile.scala")
+    funcFile.createNewFile()
+    val funcWriter = new FileWriter(funcFile)
+    funcWriter.write("import translatables.t\nt(\"some abc\")\nt(\"some test {number(a b)}.\")")
+    funcWriter.close()
+    val extractor = new ScalaExtractor(funcFile)
+    val translationKeys = extractor.extract(de)
+    assert(translationKeys===Set("some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
   }
 }

@@ -6,13 +6,16 @@ import java.io.FileReader
 import java.io.BufferedReader
 import translatables.Translation
 import translatables.Format
+import scala.reflect.generic.Trees
 
 /**
  * Parses Scala source code looking for translations.
  */
-final class ScalaExtractor(override val file: File) extends FileExtractor(file) {
+final class ScalaExtractor(override val file: File) extends FileExtractor(file, file => {
+  if (file.getName() == ".git" || (file.isFile() && !file.getName().endsWith(".scala"))) None else Some(file)
+}) {
 
-  def extractSourceKeys() = {
+  def extractSingleFile(file: File) = {
     // Set up Scala compiler for parsing
     import scala.tools.nsc.interpreter.IMain
     import scala.tools.nsc.Settings
@@ -21,17 +24,18 @@ final class ScalaExtractor(override val file: File) extends FileExtractor(file) 
     val interpreter = new IMain(settings)
     val fr = new FileReader(file);
     val br = new BufferedReader(fr)
-    // Instruct compiler to parse code to AST
-    val ast = interpreter.parse(br.readLine())
+    val content = Stream.continually(br.readLine()).takeWhile(_!=null).mkString("\n")
     br.close()
     fr.close()
+    // Instruct compiler to parse code to AST
+    val ast = interpreter.parse(content)
 
     import interpreter.global._
     /**
      * Process AST to collect translation keys
      */
-    def walkList(list: List[Tree], translationKeyAccu:Set[String]): Set[String] = {
-      def walk(tree: Tree, translationKeyAccu:Set[String]): Set[String] = {
+    def walkList(list: List[Tree], translationKeyAccu: Set[String]): Set[String] = {
+      def walk(tree: Tree, translationKeyAccu: Set[String]): Set[String] = {
         tree match {
           case interpreter.global.ClassDef(mods, name, tparams, impl) => {
             val coll = walkList(tparams, translationKeyAccu)
@@ -61,6 +65,9 @@ final class ScalaExtractor(override val file: File) extends FileExtractor(file) 
           }
           // Invocation of: new Translation("something", …)
           case a @ interpreter.global.Apply(interpreter.global.Select(interpreter.global.New(tpt: Tree), sym), List(interpreter.global.Literal(interpreter.global.Constant(value: String)), _)) if tpt.toString == "Translation" => {
+            translationKeyAccu + value
+          }
+          case interpreter.global.Apply(interpreter.global.Ident(name), List(interpreter.global.Literal(interpreter.global.Constant(value: String)))) if name.toString=="t" => {
             translationKeyAccu + value
           }
           case interpreter.global.Apply(fun: Tree, args: List[Tree]) => {

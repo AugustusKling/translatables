@@ -1,5 +1,7 @@
 package translatables
 
+import languages.Root
+
 /**
  * A translatable text.
  *
@@ -29,5 +31,11 @@ class Translation(val sourceKey: String, val language: Language) {
       }
       case ConstantPlaceholder(text) => text
     }) mkString
+  }
+}
+
+object Translation {
+  def define(text:String) = {
+    new Translation(text, Root)
   }
 }
