@@ -13,7 +13,7 @@ object Format {
    * @param sourceKey Message identifier as given in source code
    * @return All found placeholders
    */
-  def findPlaceholders(sourceKey: String, language:Language): Map[String, TypedPlaceholder] = {
+  def findPlaceholders(sourceKey: String, language: Language): Map[String, TypedPlaceholder] = {
     val regexp = "\\{([^{}]*)\\}".r
     val placeholders = for (m <- (regexp.findAllIn(sourceKey).matchData).toSeq; placeholderRaw <- m.subgroups) yield {
       val placeholder = buildPlaceholder(placeholderRaw, language)
@@ -25,14 +25,14 @@ object Format {
     if (ambiguoslyTyped.isEmpty) placeholders.toMap
     else
       throw new IllegalArgumentException("Placeholders ambiguosly typed: " +
-        ambiguoslyTyped.map(g => g._1 + g._2.distinct.mkString("(", ",", ")")).mkString(", ") + " when parsing "+sourceKey)
+        ambiguoslyTyped.map(g => g._1 + g._2.distinct.mkString("(", ",", ")")).mkString(", ") + " when parsing " + sourceKey)
   }
 
   /**
    * Deserializes a placeholder
    * @param placeholderRaw Placeholder as it appears in source key
    */
-  def buildPlaceholder(placeholderRaw: String, language:Language) = {
+  def buildPlaceholder(placeholderRaw: String, language: Language) = {
     val typedPlaceholder = new Regex("^([^()]+)\\(([^()]*)\\)$", "domain", "name")
     val (name, domain) = placeholderRaw match {
       case typedPlaceholder(domain, name) => (name, domain)
@@ -40,7 +40,7 @@ object Format {
     }
     new TypedPlaceholder(name, language.getDomain(domain) match {
       case Some(domain) => domain
-      case None => throw new NoSuchElementException("Domain " + domain + " not supported by language"+language+".")
+      case None => throw new NoSuchElementException("Domain " + domain + " not supported by language" + language + ".")
     })
   }
 
@@ -48,15 +48,39 @@ object Format {
    * Parses value provided by translator in constant and replaceable chunks.
    */
   def parseTranslation(translation: String): List[Placeholder] = {
-    val fragments = "\\{[^{}]+\\}".r.split(translation) map (new ConstantPlaceholder(_))
-    val placeholders = (for (m <- "\\{([^{}]+)\\}".r.findAllIn(translation).matchData) yield new Replaceable(m.subgroups(0))).toList
-    val coll = for (i <- 0 until (fragments.size + placeholders.size)) yield if (i % 2 == 0) fragments(i / 2) else placeholders(i / 2)
-    coll.filterNot(_ match {
-      case ConstantPlaceholder(content) => content == ""
-      case _ => false
-    }).toList
+    if (translation == "{{")
+      List(ConstantPlaceholder("{"))
+    else {
+      // Escaping of { is by typing {{ as a translator.
+      // Translation will be split at {{ then fragments without escaping persist which can be handled in a simpler way.
+      // Afterwards fragment list needs to be concatenated and adjacent constants need to be merged (to get placeholder
+      // list as short as possible).
+      val unescaped = "\\{\\{".r.split(translation).toList
+      // Build placeholder list for each fragment.
+      val placeholderLists = unescaped map { translation =>
+        val fragments = "\\{[^{}]+\\}".r.split(translation) map (new ConstantPlaceholder(_))
+        val placeholders = (for (m <- "\\{([^{}]+)\\}".r.findAllIn(translation).matchData) yield new Replaceable(m.subgroups(0))).toList
+        val coll = for (i <- 0 until (fragments.size + placeholders.size)) yield if (i % 2 == 0) fragments(i / 2) else placeholders(i / 2)
+        coll.filterNot(_ match {
+          case ConstantPlaceholder(content) => content == ""
+          case _ => false
+        }).toList
+      }
+      // Concatenate fragment lists.
+      val withAdjacentConstants = placeholderLists.tail.foldLeft(placeholderLists.head)((p1, p2) => p1 ::: ConstantPlaceholder("{") :: p2)
+      // Merge adjacent constants.
+      def concat(accu:List[Placeholder], remaining:List[Placeholder]):List[Placeholder]={
+        remaining match {
+          case List(ConstantPlaceholder(a), ConstantPlaceholder(b), _*) => concat(accu, ConstantPlaceholder(a+b) :: remaining.tail.tail)
+          case List(a, b, _*) => concat(accu ::: a :: Nil, b::remaining.tail.tail)
+          case List(a) => accu ::: a :: Nil
+          case Nil => accu
+        }
+      }
+      concat(Nil, withAdjacentConstants)
+    }
   }
-  
+
   /**
    * @return A dummy translation
    */
@@ -91,7 +115,7 @@ object Format {
    */
   def buildTranslationKey(translation: Translation, replacements: Map[String, Any]): String = {
     val trans = parseSourceKey(translation)
-    trans.map (_ match {
+    trans.map(_ match {
       case ConstantPlaceholder(content) => content
       case TypedPlaceholder(name, domain) => {
         val categoryName = domain.getCategory(replacements get (name) match {

@@ -43,6 +43,21 @@ class Parsing extends FunSuite {
     val translation = Format.parseTranslation("abc {test}{f} def {test2} ghi")
     assert(translation === List(ConstantPlaceholder("abc "), Replaceable("test"), Replaceable("f"), ConstantPlaceholder(" def "), Replaceable("test2"), ConstantPlaceholder(" ghi")))
   }
+  
+  test("parse translation with escaped {"){
+    val single = Format.parseTranslation("{{")
+    assert(single===List(ConstantPlaceholder("{")))
+    
+    val withText = Format.parseTranslation("some {{ test {{ other")
+    assert(withText===List(ConstantPlaceholder("some { test { other")))
+    
+    val withReplaceables = Format.parseTranslation("some {{ {x} and {test} plus {{{y}} or {{{test2} end")
+    assert(withReplaceables===List(ConstantPlaceholder("some { "), Replaceable("x"), ConstantPlaceholder(" and "), Replaceable("test"), ConstantPlaceholder(" plus {"), Replaceable("y"), ConstantPlaceholder("} or {"), Replaceable("test2"), ConstantPlaceholder(" end")))
+    
+    val adapter = new MapAdapter(Map("Hello {plain(plain(name))}" -> "Hallo {{{name} {{neu"))
+    val translated = new Translation("Hello {name}", Root)(adapter, "name" -> "Fairy")
+    assert(translated === "Hallo {Fairy {neu")
+  }
 
   test("build translation key from values") {
     val translationKey = Format.buildTranslationKey(new Translation("{number(x)} trees", de), Map("x" -> 0))
