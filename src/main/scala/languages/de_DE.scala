@@ -2,20 +2,20 @@ package languages
 
 import translatables.Language
 import translatables.Domain
-import domains.Date
-import domains.Time
-import domains.Currency
 import domains.Number
 import translatables.Category
 import domains.Gender
 import java.util.Locale
+import domains.Date
+import domains.Time
+import domains.Currency
 
 /**
- * German language
+ * German language as spoken in Germany.
  */
-object de extends Language(Locale.GERMAN, List(
+object de_DE extends Language(Locale.GERMANY, List(
   // Two classes of numbers
-  new Number(Locale.GERMAN, List(
+  new Number(Locale.GERMANY, List(
     // Zero or many
     new Category("zero", _ != 1),
     // Exactly one
@@ -24,9 +24,9 @@ object de extends Language(Locale.GERMAN, List(
     new Category(Gender.Neuter.toString, _ == Gender.Neuter),
     new Category(Gender.Male.toString, _ == Gender.Male),
     new Category(Gender.Female.toString, _ == Gender.Female))),
-  new Date(Locale.GERMAN), new Time(Locale.GERMAN),
-  new Currency(Locale.GERMAN, List(new Category("digits", _ => true)))),
+  new Date(Locale.GERMANY), new Time(Locale.GERMANY),
+  new Currency(Locale.GERMANY, List(new Category("digits", _ => true)))),
   // Fallback language.
-  Some(Root)) {
+  Some(de)) {
 
 }

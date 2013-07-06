@@ -21,7 +21,7 @@ class Scala extends FunSuite {
   assert(subFile.exists())
   val fw = new FileWriter(subFile);
   try {
-    fw.write("new Translation(\"test {number(hoi)} testend\", de)")
+    fw.write("object Sample { new Translation(\"test {number(hoi)} testend\", de) }")
   } finally {
     fw.close()
   }
@@ -29,7 +29,7 @@ class Scala extends FunSuite {
   test("Walk") {
     val fw = new FileWalker
     fw.walk(new File("/tmp/test"), Some(_), f => {
-      val fe = new ScalaExtractor(f)
+      val fe = new ScalaExtractor(f, new ExtractionHint(Seq("t", "Translation")))
       val extracted = fe.extract(de)
       assert(extracted===Set("test {zero(number(hoi))} testend", "test {one(number(hoi))} testend"))
     })
@@ -39,9 +39,20 @@ class Scala extends FunSuite {
     val funcFile = new File(tmpDir+"/funcFile.scala")
     funcFile.createNewFile()
     val funcWriter = new FileWriter(funcFile)
-    funcWriter.write("import translatables.t\nt(\"some abc\")\nt(\"some test {number(a b)}.\")")
+    funcWriter.write("import translatables.t\nobject Test2 {\nt(\"some abc\")\nt(\"some test {number(a b)}.\")\n}")
     funcWriter.close()
-    val extractor = new ScalaExtractor(funcFile)
+    val extractor = new ScalaExtractor(funcFile, new ExtractionHint(Seq("t")))
+    val translationKeys = extractor.extract(de)
+    assert(translationKeys===Set("some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
+  }
+  
+  test("Imported method"){
+    val funcFile = new File(tmpDir+"/funcFile.scala")
+    funcFile.createNewFile()
+    val funcWriter = new FileWriter(funcFile)
+    funcWriter.write("import translatables.DoTranslate.doTranslate\nobject Main extends App {\nprintln(doTranslate(\"some abc\"))\ndoTranslate(\"some test {number(a b)}.\")\n}")
+    funcWriter.close()
+    val extractor = new ScalaExtractor(funcFile, new ExtractionHint(Seq("doTranslate")))
     val translationKeys = extractor.extract(de)
     assert(translationKeys===Set("some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
   }

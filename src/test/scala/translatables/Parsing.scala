@@ -5,13 +5,15 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import languages.Root
 import languages.de
+import translatables.adapter.MapAdapter
+import java.util.Locale
 
 @RunWith(classOf[JUnitRunner])
 class Parsing extends FunSuite {
   val plainDomain = Root.getDomain("plain").get
   val numberDomain = Root.getDomain("number").get
   val genderDomain = Root.getDomain("gender").get
-  val dummy = new Language("dummy", List(plainDomain, numberDomain, genderDomain), None)
+  val dummy = new Language(new Locale( "dummy"), List(plainDomain, numberDomain, genderDomain), None)
 
   test("Find placeholders") {
     assert(new Translation("Hello {name} {surname}", dummy).placeholders.toSet === Set(
@@ -32,8 +34,8 @@ class Parsing extends FunSuite {
   }
 
   test("translate") {
-    Root.updateTranslations(Map("Hello {plain(plain(name))}" -> "Hallo {name}"))
-    val translated = new Translation("Hello {name}", Root)("name" -> "Fairy")
+    val adapter = new MapAdapter(Map("Hello {plain(plain(name))}" -> "Hallo {name}"))
+    val translated = new Translation("Hello {name}", Root)(adapter, "name" -> "Fairy")
     assert(translated === "Hallo Fairy")
   }
 
@@ -48,13 +50,13 @@ class Parsing extends FunSuite {
   }
 
   test("translate number") {
-    de.updateTranslations(Map(
+    val adapter=new MapAdapter(Map(
       "{zero(number(x))} trees" -> "{x} Bäume",
       "{one(number(x))} trees" -> "{x} Baum"))
     val sample = new Translation("{number(x)} trees", de)
-    assert(sample("x" -> 0) === "0 Bäume")
-    assert(sample("x" -> 1) === "1 Baum")
-    assert(sample("x" -> 13) === "13 Bäume")
+    assert(sample(adapter,"x" -> 0) === "0 Bäume")
+    assert(sample(adapter, "x" -> 1) === "1 Baum")
+    assert(sample(adapter, "x" -> 13) === "13 Bäume")
   }
 
   test("extract translation keys") {
@@ -80,7 +82,8 @@ class Parsing extends FunSuite {
   }
 
   test("translate using fallback") {
-    assert(new Translation("fifnzfn832{number(x)}jsd skjfsd {y}jsd", Root)("x" -> 5, "y" -> "--") === "fifnzfn8325jsd skjfsd --jsd")
+    val adapter = new MapAdapter(Map.empty[String, String])
+    assert(new Translation("fifnzfn832{number(x)}jsd skjfsd {y}jsd", Root)(adapter, "x" -> 5, "y" -> "--") === "fifnzfn8325jsd skjfsd --jsd")
   }
 
 }

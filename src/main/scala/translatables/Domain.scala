@@ -16,5 +16,5 @@ case class Domain(val name: String, val categories: List[Category]) {
    * @param value Value for placeholder as given to translation call
    * @return Textual representation for the value to be read by a user
    */
-  def format(value:Any):String = value toString
+  def format(value:Any):String = value.toString
 }

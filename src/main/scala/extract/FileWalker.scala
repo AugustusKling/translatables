@@ -15,7 +15,7 @@ class FileWalker {
     case Some(root) => {
       if (root.isFile()) {
         concreteFileConsumer(root)
-      } else {
+      } else if(root.canRead() && root.isDirectory()) {
         root.listFiles().foreach[Unit](walk(_, filter, concreteFileConsumer))
       }
     }

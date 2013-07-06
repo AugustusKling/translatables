@@ -1,12 +1,14 @@
 package translatables
 
+import java.util.Locale
+
 /**
  * Target language that consists of domains. It serves as translation target and translation memory.
  * @param code Language code such as de or de-CH.
  * @param extensionDomains The contained domains define the grammar rules of the language.
  * @param fallback Other language that is queried for domains and translation if missing in this language.
  */
-class Language(val code: String, val extensionDomains: List[Domain], val fallback: Option[Language]) {
+class Language(val code: Locale, extensionDomains:List[Domain], val fallback: Option[Language]) {
   /** From tranlationKey to translation */
   val translations: collection.mutable.Map[String, List[Placeholder]] = collection.mutable.Map()
 
@@ -33,7 +35,7 @@ class Language(val code: String, val extensionDomains: List[Domain], val fallbac
    * Makes the given translations known to the language
    * @param translationKeyTranslation Mapping from translation key to translation
    */
-  def updateTranslations(translationKeyTranslation: Map[String, String]) = {
+  def updateTranslations2(translationKeyTranslation: Map[String, String]) = {
     translationKeyTranslation.foreach {
       case (translationKey, translation) => translations.update(translationKey, Format.parseTranslation(translation))
     }
@@ -41,10 +43,28 @@ class Language(val code: String, val extensionDomains: List[Domain], val fallbac
   /**
    * Looks up translation by key
    */
-  def getTranslation(translationKey: String): List[Placeholder] = translations getOrElse (translationKey,
+  def getTranslation2(translationKey: String): List[Placeholder] = translations getOrElse (translationKey,
     fallback match {
       case None =>
         Format.buildFallback(translationKey)
-      case fallback => fallback.get.getTranslation(translationKey)
+      case fallback => fallback.get.getTranslation2(translationKey)
     })
+
+  def getTranslation(translationKey: String, adapter: Adapter): List[Placeholder] = {
+    try {
+      val translation = adapter.get(translationKey);
+      Format.parseTranslation(translation)
+    } catch {
+      case e: NotTranslated => fallback match {
+        case None =>
+          Format.buildFallback(translationKey)
+        case fallback => fallback.get.getTranslation(translationKey, adapter)
+      }
+    }
+  }
+  
+  /**
+   * Language and region represented by this {@code Language}.
+   */
+  def locale = code
 }

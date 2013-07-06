@@ -20,17 +20,16 @@ import japa.parser.ast.expr.MethodCallExpr
 /**
  * Extracts translations for Java source code.
  */
-class JavaExtractor(override val file: File) extends FileExtractor(file, file => {
+class JavaExtractor(override val file: File, override val hint: ExtractionHint) extends FileExtractor(file, file => {
   if (file.getName() == ".git" || (file.isFile() && !file.getName().endsWith(".java"))) None else Some(file)
-}) {
-  
+}, hint) {
+
   def extractSingleFile(file: File): Set[String] = {
-    //val source = "class Test { public Test(){ new Translation(\"{number(varName)} blub!\", de); Translation(\"x\", 4);} private void Translation(String a, String b){}}"
     val source = new FileInputStream(file)
     val cu = JavaParser.parse(source)
     source.close()
     val results = scala.collection.mutable.Set[String]()
-    new VA(results).visit(cu, null)
+    new VA(results, hint).visit(cu, null)
     results.toSet
   }
 }
@@ -38,15 +37,26 @@ class JavaExtractor(override val file: File) extends FileExtractor(file, file =>
 /**
  * Visitor to look for constructor calls of translation function.
  */
-class VA(val results: scala.collection.mutable.Set[String]) extends VoidVisitorAdapter[AnyRef] {
-  override def visit(n:MethodCallExpr, args:AnyRef) = {
-    if(n.getName()=="define"){
-      results += n.getArgs().head.toString
+class VA(val results: scala.collection.mutable.Set[String], val hint: ExtractionHint) extends VoidVisitorAdapter[AnyRef] {
+  /**
+   * Extracts all invocations to methods called {@code define}.
+   */
+  override def visit(n: MethodCallExpr, args: AnyRef) = {
+    if (hint.calls.contains(n.getName)) {
+      val firstArg = n.getArgs().head
+      firstArg match {
+        case a: StringLiteralExpr =>
+          results += a.getValue()
+        case _ => Unit
+      }
     }
   }
-  
+
+  /**
+   * Extracts direct instantiations of the {@link Translation} object.
+   */
   override def visit(n: ObjectCreationExpr, arg: AnyRef) = {
-    if (n.getType().getName() == "Translation") {
+    if (hint.calls.contains(n.getType().getName)) {
       val args = n.getArgs()
       if (args != null) {
         val argsList = for (a <- args) yield a

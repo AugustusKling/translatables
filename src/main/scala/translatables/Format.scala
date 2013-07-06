@@ -13,10 +13,10 @@ object Format {
    * @param sourceKey Message identifier as given in source code
    * @return All found placeholders
    */
-  def findPlaceholders(sourceKey: String): Map[String, TypedPlaceholder] = {
+  def findPlaceholders(sourceKey: String, language:Language): Map[String, TypedPlaceholder] = {
     val regexp = "\\{([^{}]*)\\}".r
-    val placeholders = for (m <- (regexp findAllIn (sourceKey) matchData) toSeq; placeholderRaw <- m subgroups) yield {
-      val placeholder = buildPlaceholder(placeholderRaw)
+    val placeholders = for (m <- (regexp.findAllIn(sourceKey).matchData).toSeq; placeholderRaw <- m.subgroups) yield {
+      val placeholder = buildPlaceholder(placeholderRaw, language)
       (placeholder.name, placeholder)
     }
     val ambiguoslyTyped = placeholders.groupBy(_._2.name).map(g => (g._1, g._2.map(_._2.domain))).filterNot {
@@ -25,34 +25,38 @@ object Format {
     if (ambiguoslyTyped.isEmpty) placeholders.toMap
     else
       throw new IllegalArgumentException("Placeholders ambiguosly typed: " +
-        ambiguoslyTyped.map(g => g._1 + g._2.distinct.mkString("(", ",", ")")).mkString(", "))
+        ambiguoslyTyped.map(g => g._1 + g._2.distinct.mkString("(", ",", ")")).mkString(", ") + " when parsing "+sourceKey)
   }
 
   /**
    * Deserializes a placeholder
    * @param placeholderRaw Placeholder as it appears in source key
    */
-  def buildPlaceholder(placeholderRaw: String) = {
+  def buildPlaceholder(placeholderRaw: String, language:Language) = {
     val typedPlaceholder = new Regex("^([^()]+)\\(([^()]*)\\)$", "domain", "name")
     val (name, domain) = placeholderRaw match {
       case typedPlaceholder(domain, name) => (name, domain)
       case _ => (placeholderRaw, "plain")
     }
-    new TypedPlaceholder(name, Root.getDomain(domain) match {
+    new TypedPlaceholder(name, language.getDomain(domain) match {
       case Some(domain) => domain
-      case None => throw new NoSuchElementException("Domain " + domain + " not supported by language.")
+      case None => throw new NoSuchElementException("Domain " + domain + " not supported by language"+language+".")
     })
   }
 
+  /**
+   * Parses value provided by translator in constant and replaceable chunks.
+   */
   def parseTranslation(translation: String): List[Placeholder] = {
     val fragments = "\\{[^{}]+\\}".r.split(translation) map (new ConstantPlaceholder(_))
-    val placeholders = (for (m <- "\\{([^{}]+)\\}".r.findAllIn(translation) matchData) yield new Replaceable(m.subgroups(0))) toList
+    val placeholders = (for (m <- "\\{([^{}]+)\\}".r.findAllIn(translation).matchData) yield new Replaceable(m.subgroups(0))).toList
     val coll = for (i <- 0 until (fragments.size + placeholders.size)) yield if (i % 2 == 0) fragments(i / 2) else placeholders(i / 2)
     coll.filterNot(_ match {
       case ConstantPlaceholder(content) => content == ""
       case _ => false
-    }) toList
+    }).toList
   }
+  
   /**
    * @return A dummy translation
    */
@@ -87,16 +91,16 @@ object Format {
    */
   def buildTranslationKey(translation: Translation, replacements: Map[String, Any]): String = {
     val trans = parseSourceKey(translation)
-    trans map (_ match {
+    trans.map (_ match {
       case ConstantPlaceholder(content) => content
       case TypedPlaceholder(name, domain) => {
         val categoryName = domain.getCategory(replacements get (name) match {
           case Some(value) => value
-          case None => throw new NoSuchElementException("Missing value for placeholder " + name)
+          case None => throw new NoSuchElementException(DoTranslate.doTranslate("Missing value for placeholder {0} of source key {1}.", name, translation.sourceKey))
         }).name
         "{" + categoryName + "(" + domain.name + "(" + name + "))}"
       }
-    }) mkString
+    }).mkString
   }
 
   /**
@@ -110,11 +114,11 @@ object Format {
     val trans = parseSourceKey(translation)
     val variants = trans.filter(_.isInstanceOf[TypedPlaceholder]).flatMap {
       case TypedPlaceholder(name, domain) => for (cat <- domain.categories) yield (name, domain.name, cat.name)
-    } toSet
+    }.toSet
     val grouped = variants.groupBy(_._1)
     def bind(trans: Set[List[Placeholder]], groups: Map[String, Set[(String, String, String)]]): Set[String] = {
       if (groups.isEmpty) {
-        for (te <- trans) yield te.map { case ConstantPlaceholder(content) => content } mkString
+        for (te <- trans) yield te.map { case ConstantPlaceholder(content) => content }.mkString
       } else {
         val (phName, fullCategories) = groups.head
         val ex = for (fc <- fullCategories; te <- trans) yield te.map(_ match {
