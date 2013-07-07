@@ -8,6 +8,10 @@ import scala.util.matching.Regex.Match
  * Format of translation files. This implements the serialization of translations.
  */
 object Format {
+  type Escaping = (String, String)
+  val translationEscaping: Escaping = "{{" -> "{"
+  val sourceEscaping: Escaping = "{{" -> "{{"
+
   /**
    * Extracts placeholders from source keys.
    * @param sourceKey Message identifier as given in source code
@@ -47,9 +51,17 @@ object Format {
   /**
    * Parses value provided by translator in constant and replaceable chunks.
    */
-  def parseTranslation(translation: String): List[Placeholder] = {
-    if (translation == "{{")
-      List(ConstantPlaceholder("{"))
+  def parseTranslation(translation: String): List[Placeholder] = parseKeyOrTranlation(translation, translationEscaping)
+
+  /**
+   * Parses either a source key, translation key or translation.
+   * @param translation Serialized key or translation.
+   * @param escaping How escape character should be replaced before returning.
+   * @return Chopped up input where escaped characters are part of {@code ConstantPlaceholder}s and not special anymore.
+   */
+  private def parseKeyOrTranlation(translation: String, escaping: Escaping): List[Placeholder] = {
+    if (translation == escaping._1)
+      List(ConstantPlaceholder(escaping._2))
     else {
       // Escaping of { is by typing {{ as a translator.
       // Translation will be split at {{ then fragments without escaping persist which can be handled in a simpler way.
@@ -67,12 +79,12 @@ object Format {
         }).toList
       }
       // Concatenate fragment lists.
-      val withAdjacentConstants = placeholderLists.tail.foldLeft(placeholderLists.head)((p1, p2) => p1 ::: ConstantPlaceholder("{") :: p2)
+      val withAdjacentConstants = placeholderLists.tail.foldLeft(placeholderLists.head)((p1, p2) => p1 ::: ConstantPlaceholder(escaping._2) :: p2)
       // Merge adjacent constants.
-      def concat(accu:List[Placeholder], remaining:List[Placeholder]):List[Placeholder]={
+      def concat(accu: List[Placeholder], remaining: List[Placeholder]): List[Placeholder] = {
         remaining match {
-          case List(ConstantPlaceholder(a), ConstantPlaceholder(b), _*) => concat(accu, ConstantPlaceholder(a+b) :: remaining.tail.tail)
-          case List(a, b, _*) => concat(accu ::: a :: Nil, b::remaining.tail.tail)
+          case List(ConstantPlaceholder(a), ConstantPlaceholder(b), _*) => concat(accu, ConstantPlaceholder(a + b) :: remaining.tail.tail)
+          case List(a, b, _*) => concat(accu ::: a :: Nil, b :: remaining.tail.tail)
           case List(a) => accu ::: a :: Nil
           case Nil => accu
         }
@@ -96,7 +108,7 @@ object Format {
    * Deserializes a source key
    */
   def parseSourceKey(translation: Translation): List[Placeholder] = {
-    val parsed = parseTranslation(translation.sourceKey)
+    val parsed = parseKeyOrTranlation(translation.sourceKey, sourceEscaping)
     val PlaceholderWithDomain = "([^(]+)\\(([^{}]+)\\)".r
 
     def getDomain(domain: String) = translation.language.getDomain(domain) match {
@@ -131,8 +143,11 @@ object Format {
    * Given a source key calculates all translation keys for a specific language.
    *
    * The generated keys are language specific because of the different rules that apply due to the
-   * way a language's grammar threats a domain. For example the number of differnent plural forms
+   * way a language's grammar threats a domain. For example the number of different plural forms
    * differs and so is when to apply which plural form.
+   *
+   * @param translation Include a source key and the target language.
+   * @return All translation keys of this source key for the target language.
    */
   def buildAllTranslationKeys(translation: Translation): Set[String] = {
     val trans = parseSourceKey(translation)

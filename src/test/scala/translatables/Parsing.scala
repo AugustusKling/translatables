@@ -13,7 +13,7 @@ class Parsing extends FunSuite {
   val plainDomain = Root.getDomain("plain").get
   val numberDomain = Root.getDomain("number").get
   val genderDomain = Root.getDomain("gender").get
-  val dummy = new Language(new Locale( "dummy"), List(plainDomain, numberDomain, genderDomain), None)
+  val dummy = new Language(new Locale("dummy"), List(plainDomain, numberDomain, genderDomain), None)
 
   test("Find placeholders") {
     assert(new Translation("Hello {name} {surname}", dummy).placeholders.toSet === Set(
@@ -43,19 +43,44 @@ class Parsing extends FunSuite {
     val translation = Format.parseTranslation("abc {test}{f} def {test2} ghi")
     assert(translation === List(ConstantPlaceholder("abc "), Replaceable("test"), Replaceable("f"), ConstantPlaceholder(" def "), Replaceable("test2"), ConstantPlaceholder(" ghi")))
   }
-  
-  test("parse translation with escaped {"){
+
+  test("parse translation with escaped {") {
     val single = Format.parseTranslation("{{")
-    assert(single===List(ConstantPlaceholder("{")))
-    
+    assert(single === List(ConstantPlaceholder("{")))
+
     val withText = Format.parseTranslation("some {{ test {{ other")
-    assert(withText===List(ConstantPlaceholder("some { test { other")))
-    
+    assert(withText === List(ConstantPlaceholder("some { test { other")))
+
     val withReplaceables = Format.parseTranslation("some {{ {x} and {test} plus {{{y}} or {{{test2} end")
-    assert(withReplaceables===List(ConstantPlaceholder("some { "), Replaceable("x"), ConstantPlaceholder(" and "), Replaceable("test"), ConstantPlaceholder(" plus {"), Replaceable("y"), ConstantPlaceholder("} or {"), Replaceable("test2"), ConstantPlaceholder(" end")))
-    
+    assert(withReplaceables === List(ConstantPlaceholder("some { "), Replaceable("x"), ConstantPlaceholder(" and "), Replaceable("test"), ConstantPlaceholder(" plus {"), Replaceable("y"), ConstantPlaceholder("} or {"), Replaceable("test2"), ConstantPlaceholder(" end")))
+
     val adapter = new MapAdapter(Map("Hello {plain(plain(name))}" -> "Hallo {{{name} {{neu"))
     val translated = new Translation("Hello {name}", Root)(adapter, "name" -> "Fairy")
+    assert(translated === "Hallo {Fairy {neu")
+  }
+
+  test("parse sourceKey with escaped {") {
+    val quotedConstant = new Translation("{{", Root)
+    val single = Format.parseSourceKey(quotedConstant)
+    assert(single === List(ConstantPlaceholder("{{")))
+    assert(Format.buildAllTranslationKeys(quotedConstant)===Set("{{"))
+
+    val withText = Format.parseSourceKey(new Translation("some {{ test {{ other", Root))
+    assert(withText === List(ConstantPlaceholder("some {{ test {{ other")))
+
+    val withReplaceables = Format.parseSourceKey(new Translation("some {{ {x} and {test} plus {{{y}} or {{{test2} end", Root))
+    assert(withReplaceables === List(ConstantPlaceholder("some {{ "),
+        TypedPlaceholder("x", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+        ConstantPlaceholder(" and "),
+        TypedPlaceholder("test", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+        ConstantPlaceholder(" plus {{"),
+        TypedPlaceholder("y", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+        ConstantPlaceholder("} or {{"),
+        TypedPlaceholder("test2", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+        ConstantPlaceholder(" end")))
+
+    val adapter = new MapAdapter(Map("Hello {{ {plain(plain(name))}" -> "Hallo {{{name} {{neu"))
+    val translated = new Translation("Hello {{ {name}", Root)(adapter, "name" -> "Fairy")
     assert(translated === "Hallo {Fairy {neu")
   }
 
@@ -65,11 +90,11 @@ class Parsing extends FunSuite {
   }
 
   test("translate number") {
-    val adapter=new MapAdapter(Map(
+    val adapter = new MapAdapter(Map(
       "{zero(number(x))} trees" -> "{x} Bäume",
       "{one(number(x))} trees" -> "{x} Baum"))
     val sample = new Translation("{number(x)} trees", de)
-    assert(sample(adapter,"x" -> 0) === "0 Bäume")
+    assert(sample(adapter, "x" -> 0) === "0 Bäume")
     assert(sample(adapter, "x" -> 1) === "1 Baum")
     assert(sample(adapter, "x" -> 13) === "13 Bäume")
   }
