@@ -12,12 +12,13 @@ import scala.io.Source
 import java.io.FileWriter
 import translatables.Translation
 import extract.ExtractionHint
-import junit.framework.Test
 import translatables.adapter.MapAdapter
 import translatables.DoTranslate.doTranslate
 import translatables.DoTranslate
 import java.util.Locale
 import translatables.adapter.JsonAdapter
+import scala.collection.SortedMap
+import scala.collection.immutable.TreeMap
 
 /**
  * Configuration for extract command.
@@ -43,16 +44,18 @@ case class Config(
 object Main extends App {
   // Set up translations of this program
   val programLanguageCode = Locale.getDefault().getLanguage();
-  val programAdapter = new JsonAdapter(Option(getClass().getResourceAsStream(programLanguageCode + ".json")).getOrElse(getClass().getResourceAsStream("en.json")))
+  val translationFolder = "translations/"
+  val programAdapter = new JsonAdapter(Option(getClass().getClassLoader().getResourceAsStream(translationFolder + programLanguageCode + ".json"))
+    .getOrElse(getClass().getResourceAsStream(translationFolder+"en.json")))
   DoTranslate.setParams(if (programLanguageCode == "de") de else en, programAdapter)
 
   // Define what the program invocation needs to look like.
   val parser = new scopt.OptionParser[Config]("translatables") {
-    head("Version 0.x, use with care.")
+    head(doTranslate("Version {0}, use with care.", "0.x"))
 
     help("help") text ("Examines a source code to find translations. Writes found translations to file.")
 
-    cmd("extract") text("Extracts translations and writes them to a JSON file.") children {
+    cmd("extract") text ("Extracts translations and writes them to a JSON file.") children {
       opt[File]("source") unbounded () required () action { (file, c) =>
         c.copy(sources = c.sources :+ file)
       } text ("Path to root of source code.")
@@ -60,10 +63,12 @@ object Main extends App {
         c.copy(target = file)
       } text ("Target file to collect texts to translate.")
       opt[String]("language") action { (languageCode, c) =>
-        val lang = languageCode match {
-          case "de" => de
-        }
+        try {
+        val lang = Class.forName("languages."+languageCode+"$").getField("MODULE$").get(null).asInstanceOf[Language];
         c.copy(language = lang)
+        } catch {
+          case e:Throwable => throw new RuntimeException(doTranslate("No supported language found by code “{0}”. Please consult the docs about the members of package “languages”.", languageCode), e)
+        }
       } text ("Target language. Supply a lowercase ISO 639 code.")
       opt[String]("calls") unbounded () required () action { (functionName, c) =>
         c.copy(translationCalls = c.translationCalls :+ functionName)
@@ -94,13 +99,13 @@ object Main extends App {
     println(doTranslate("Extracted {number(0)} translation.", sourceKeys.size.asInstanceOf[Object]))
 
     // Only retain keys that are still in use but take over existing translations for such keys.
-    val merged: Map[String, String] = Map() ++ sourceKeys.map(key => key -> existingTranslations.getOrElse(key, ""));
+    val merged: Map[String, String] = TreeMap( sourceKeys.map(key => key -> existingTranslations.getOrElse(key, "")):_*);
 
     val fw = new FileWriter(config.target)
     try {
       // Persist extracted translations.
       fw.write(Json.write(merged))
-      println(doTranslate("Merged new translations into {0}.", config.target))
+      println(doTranslate("Merged new translations into {0}.", config.target.getAbsolutePath()))
     } finally {
       fw.close()
     }

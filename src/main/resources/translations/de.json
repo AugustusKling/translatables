@@ -1,7 +1,9 @@
 {
-	"Running extractor {plain(plain(0))}" : "Suche mittels {0}",
-	"Extraction aborted due to malformed invocation." : "",
+	"Extracted {one(number(0))} translation." : "{0} Übersetzung gefunden.",
 	"Extracted {zero(number(0))} translation." : "{0} Übersetzungen gefunden.",
+	"Extraction aborted due to malformed invocation." : "Extraktion abgebrochen wegen fehlerhaftem Aufruf.",
 	"Merged new translations into {plain(plain(0))}." : "Übersetzungen in {0} zusammengeführt.",
-	"Extracted {one(number(0))} translation." : "{0} Übersetzung gefunden."
+	"No supported language found by code “{plain(plain(0))}”. Please consult the docs about the members of package “languages”." : "Keine unterstützte Sprache für Code „{0}“ gefunden. Bitte mögliche Sprachen in der Dokumentation des Pakets „languages“ nachschlagen.",
+	"Running extractor {plain(plain(0))}" : "Suche mittels {0}",
+	"Version {plain(plain(0))}, use with care." : "Version {0}, bitte Vorsicht."
 }
