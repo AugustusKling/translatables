@@ -16,6 +16,9 @@ import java.io.FileReader
 import java.io.BufferedReader
 import java.io.FileInputStream
 import japa.parser.ast.expr.MethodCallExpr
+import japa.parser.ast.body.FieldDeclaration
+import japa.parser.ast.body.ModifierSet
+import japa.parser.ast.`type`.ClassOrInterfaceType
 
 /**
  * Extracts translations for Java source code.
@@ -50,6 +53,23 @@ class VA(val results: scala.collection.mutable.Set[String], val hint: Extraction
         case _ => Unit
       }
     }
+    super.visit(n, args)
+  }
+  
+  /**
+   * Add every value to extracted source keys for final String fields when they are annotated with TranslationKey.
+   */
+  override def visit(n:FieldDeclaration, arg:AnyRef){
+    val isFinal = ModifierSet.isFinal( n.getModifiers())
+    val initialValue = n.getVariables().get(0).getInit()
+    if(initialValue.isInstanceOf[StringLiteralExpr]){
+      val literal = initialValue.asInstanceOf[StringLiteralExpr]
+      val annotations = n.getAnnotations()
+      if(annotations!=null && annotations.exists(_.getName().getName()=="TranslationKey")){
+        results += literal.getValue()
+      }
+    }
+    super.visit(n, arg);
   }
 
   /**
@@ -66,5 +86,6 @@ class VA(val results: scala.collection.mutable.Set[String], val hint: Extraction
         }
       }
     }
+    super.visit(n, arg)
   }
 }
