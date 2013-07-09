@@ -66,7 +66,7 @@ object Translation extends TranslationApi {
    * @param replacements Values to replace. Keys match placeholder names.
    * @return Translated text.
    */
-  def get(lang: Language, adapter: Adapter, sourceKey: String, replacements: java.util.Map[String, Object]): String = {
+  def get(lang: Language, adapter: Adapter, sourceKey: String, replacements: java.util.Map[String, _]): String = {
     get(lang, adapter, sourceKey, JavaConversions.mapAsScalaMap(replacements).toSeq: _*)
   }
 }

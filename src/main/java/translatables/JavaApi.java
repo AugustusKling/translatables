@@ -20,7 +20,7 @@ public class JavaApi implements TranslationApi {
 	}
 
 	public String get(Language lang, Adapter adapter, String sourceKey,
-			Map<String, Object> replacements) {
+			Map<String, ?> replacements) {
 		return Translation.get(lang, adapter, sourceKey, replacements);
 	}
 

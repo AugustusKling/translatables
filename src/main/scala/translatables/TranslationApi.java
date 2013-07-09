@@ -19,5 +19,5 @@ public interface TranslationApi {
 	 * @return Translated text.
 	 */
 	public String get(Language lang, Adapter adapter, String sourceKey,
-			java.util.Map<String, Object> replacements);
+			java.util.Map<String, ?> replacements);
 }
