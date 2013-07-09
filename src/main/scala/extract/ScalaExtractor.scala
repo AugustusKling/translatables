@@ -100,7 +100,7 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
             walk(tree, translationKeyAccu)
           }
           case Literal(value) => value match {
-            case Constant(value: Any) => {
+            case Constant(_) => {
               translationKeyAccu
             }
           }
@@ -118,6 +118,18 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
           case Apply(fun: Tree, args: List[Tree]) => {
             val coll = walkList(args, translationKeyAccu)
             walk(fun, coll)
+          }
+          case CaseDef(pat: Tree, guard: Tree, body: Tree) => {
+            walkList(List(pat, guard, body), translationKeyAccu)
+          }
+          case Bind(name: Name, body: Tree) => {
+            walk(body, translationKeyAccu)
+          }
+          case Throw(expr: Tree) => {
+            walk(expr, translationKeyAccu)
+          }
+          case Typed(expr: Tree, tpt: Tree)=>{
+            walkList(List(expr, tpt), translationKeyAccu)
           }
           // TODO Replace by proper type-specific handling
           case a => {
