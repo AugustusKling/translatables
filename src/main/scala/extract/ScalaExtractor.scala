@@ -50,8 +50,16 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
           case PackageDef(pid: RefTree, stats: List[Tree]) => {
             walkList(stats, translationKeyAccu)
           }
-          case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) => {
-            walkList(List(tpt, rhs), translationKeyAccu)
+          // @TranslationKey annotation.
+          case vd @ ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs @ Literal(Constant(value:String))) => {
+            val translationKeyAnnotation = vd.mods.annotations.find(_ match {
+              case Apply(Select(New(Ident(name: Name)) , _), _) => name.toTypeName.toString=="TranslationKey"
+              case _ => false
+            })
+            walkList(List(tpt, rhs), translationKeyAnnotation match {
+              case Some(_) => translationKeyAccu + value 
+              case _ => translationKeyAccu
+            })
           }
           case AppliedTypeTree(tpt: Tree, args: List[Tree]) => {
             walkList(args :+ tpt, translationKeyAccu)
@@ -74,7 +82,9 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
           case AssignOrNamedArg(lhs: Tree, rhs: Tree) => walkList(List(lhs, rhs), translationKeyAccu)
           case TypeApply(fun: Tree, args: List[Tree]) => walkList(args :+ fun, translationKeyAccu)
           case TypeBoundsTree(lo: Tree, hi: Tree) => walkList(List(lo, hi), translationKeyAccu)
-          case Annotated(annot: Tree, arg: Tree) => walkList(List(annot, arg), translationKeyAccu)
+          case Annotated(annot: Tree, arg: Tree) => {
+            walkList(List(annot, arg), translationKeyAccu)
+          }
           case TypeTree() => {
             translationKeyAccu
           }

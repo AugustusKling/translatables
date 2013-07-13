@@ -31,29 +31,50 @@ class Scala extends FunSuite {
     fw.walk(new File("/tmp/test"), Some(_), f => {
       val fe = new ScalaExtractor(f, new ExtractionHint(Seq("t", "Translation")))
       val extracted = fe.extract(de)
-      assert(extracted===Set("test {zero(number(hoi))} testend", "test {one(number(hoi))} testend"))
+      assert(extracted === Set("test {zero(number(hoi))} testend", "test {one(number(hoi))} testend"))
     })
   }
-  
-  test("function call"){
-    val funcFile = new File(tmpDir+"/funcFile.scala")
+
+  test("function call") {
+    val funcFile = new File(tmpDir + "/funcFile.scala")
     funcFile.createNewFile()
     val funcWriter = new FileWriter(funcFile)
     funcWriter.write("import translatables.t\nobject Test2 {\nt(\"some abc\")\nt(\"some test {number(a b)}.\")\n}")
     funcWriter.close()
     val extractor = new ScalaExtractor(funcFile, new ExtractionHint(Seq("t")))
     val translationKeys = extractor.extract(de)
-    assert(translationKeys===Set("some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
+    assert(translationKeys === Set("some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
   }
-  
-  test("Imported method"){
-    val funcFile = new File(tmpDir+"/funcFile.scala")
+
+  test("Imported method") {
+    val funcFile = new File(tmpDir + "/funcFile.scala")
     funcFile.createNewFile()
     val funcWriter = new FileWriter(funcFile)
     funcWriter.write("import translatables.DoTranslate.doTranslate\nobject Main extends App {\nprintln(doTranslate(\"some abc\"))\ndoTranslate(\"some test {number(a b)}.\")\n}")
     funcWriter.close()
     val extractor = new ScalaExtractor(funcFile, new ExtractionHint(Seq("doTranslate")))
     val translationKeys = extractor.extract(de)
-    assert(translationKeys===Set("some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
+    assert(translationKeys === Set("some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
+  }
+
+  test("Annotations") {
+    val funcFile = new File(tmpDir + "/funcFile.scala")
+    funcFile.createNewFile()
+    val funcWriter = new FileWriter(funcFile)
+    funcWriter.write("""
+	      import translatables.DoTranslate.doTranslate
+	      object Main extends App {
+    		@TranslationKey
+    		val test = "hu"
+    		@Another
+    		val test = "nix"
+			println(doTranslate("some abc"))
+			doTranslate("some test {number(a b)}.")
+	      }
+	      """)
+    funcWriter.close()
+    val extractor = new ScalaExtractor(funcFile, new ExtractionHint(Seq("doTranslate")))
+    val translationKeys = extractor.extract(de)
+    assert(translationKeys === Set("hu", "some abc", "some test {zero(number(a b))}.", "some test {one(number(a b))}."))
   }
 }
