@@ -9,17 +9,14 @@ import domains.Number
 import translatables.Category
 import domains.Gender
 import java.util.Locale
+import domains.numbers.Rule1
 
 /**
  * German language
  */
 object de extends Language(Locale.GERMAN, List(
   // Two classes of numbers
-  new Number(Locale.GERMAN, List(
-    // Zero or many
-    new Category("zero", _ != 1),
-    // Exactly one
-    new Category("one", _ == 1))),
+  new Rule1(Locale.GERMAN),
   new Domain("gender", List(
     new Category(Gender.Neuter.toString, _ == Gender.Neuter),
     new Category(Gender.Male.toString, _ == Gender.Male),

@@ -9,17 +9,14 @@ import java.util.Locale
 import domains.Date
 import domains.Time
 import domains.Currency
+import domains.numbers.Rule1
 
 /**
  * German language as spoken in Germany.
  */
 object de_DE extends Language(Locale.GERMANY, List(
   // Two classes of numbers
-  new Number(Locale.GERMANY, List(
-    // Zero or many
-    new Category("zero", _ != 1),
-    // Exactly one
-    new Category("one", _ == 1))),
+  new Rule1(Locale.GERMANY),
   new Domain("gender", List(
     new Category(Gender.Neuter.toString, _ == Gender.Neuter),
     new Category(Gender.Male.toString, _ == Gender.Male),
