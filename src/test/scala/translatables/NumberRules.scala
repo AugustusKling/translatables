@@ -22,6 +22,11 @@ import domains.numbers.Rule13
 import domains.numbers.Rule14
 import domains.numbers.Rule15
 import domains.numbers.Rule16
+import domains.numbers.Rule17
+import domains.numbers.Rule18
+import domains.numbers.Rule19
+import domains.numbers.Rule20
+import domains.numbers.Rule21
 
 @RunWith(classOf[JUnitRunner])
 class NumberRules extends FunSuite {
@@ -198,5 +203,40 @@ class NumberRules extends FunSuite {
     assertCategory(rule, List(1000000, 2000000, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000), Rule16.million)
     assertCategory(rule, List(0, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 26, 27, 28, 30, 35, 36,
       37, 38, 40), Rule16.zero)
+  }
+
+  test("Rule17") {
+    val rule = new Rule17(Locale.ROOT)
+    assertCategory(rule, List(1), Rule17.one)
+    assertCategory(rule, List(2), Rule17.two)
+    assertCategory(rule, List(3), Rule17.three)
+    assertCategory(rule, List(0, 4, 5, 6, 7, 8), Rule17.zero)
+  }
+
+  test("Rule18") {
+    val rule = new Rule18(Locale.ROOT)
+    assertCategory(rule, List(1), Rule18.one)
+    assertCategory(rule, List(2), Rule18.two)
+    assertCategory(rule, List(0, 3, 4, 5, 6, 7, 8), Rule18.zero)
+  }
+
+  test("Rule19") {
+    val rule = new Rule19(Locale.ROOT)
+    assertCategory(rule, List(1), Rule19.one)
+    assertCategory(rule, List(2), Rule19.two)
+    assertCategory(rule, List(0, 3, 4, 5, 6, 7), Rule19.zero)
+    assertCategory(rule, List(8, 11), Rule19.eight)
+  }
+
+  test("Rule20") {
+    val rule = new Rule20(Locale.ROOT)
+    assertCategory(rule, List(0), Rule20.zero)
+    assertCategory(rule, List(1, 2, 3, 4, 5, 6), Rule20.one)
+  }
+
+  test("Rule21") {
+    val rule = new Rule21(Locale.ROOT)
+    assertCategory(rule, List(0, 2, 3, 4, 5, 6), Rule21.zero)
+    assertCategory(rule, List(1, 21, 31, 41, 51, 61), Rule21.one)
   }
 }

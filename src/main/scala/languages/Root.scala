@@ -14,8 +14,8 @@ import domains.Number
  */
 object Root extends Language(Locale.ROOT, List(
   new Domain("plain", List(new Category("plain", _ => true))),
-  new Domain("number", List(new Category("one", _ => true))),
+  new Number(Locale.ROOT, List(new Category("one", _ => true))),
   new Domain("gender", List(new Category("neuter", _ => true))),
-  new Date(Locale.GERMAN), new Time(Locale.GERMAN),
-  new Currency(Locale.GERMAN, List(new Category("digits", _ => true)))), None) {
+  new Date(Locale.ROOT), new Time(Locale.ROOT),
+  new Currency(Locale.ROOT, List(new Category("digits", _ => true)))), None) {
 }

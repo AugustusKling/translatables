@@ -14,6 +14,7 @@ class Rule16(locale: Locale) extends domains.Number(locale, List(
   Rule16.million,
   Rule16.zero))
 
+// TODO Verify rules. These are of Mozilla but Lauchpad claims French rules (2 plurals).
 object Rule16 {
   // is 1: 1
   val one = new Category("one", _ == 1)
