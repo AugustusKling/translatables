@@ -27,3 +27,5 @@ proguardOptions += "-keep class translatables.** { *; }"
 // proguardOptions += "-dontshrink"
 
 // proguardOptions += "-dontoptimize"
+
+seq(GenJavaDoc.javadocSettings :_*)
