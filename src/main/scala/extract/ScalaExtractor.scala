@@ -15,7 +15,7 @@ import scala.reflect.internal.util.BatchSourceFile
 /**
  * Parses Scala source code looking for translations.
  */
-final class ScalaExtractor(override val file: File, override val hint:ExtractionHint) extends FileExtractor(file, file => {
+final class ScalaExtractor(override val file: File, override val hint: ExtractionHint) extends FileExtractor(file, file => {
   if (file.getName() == ".git" || (file.isFile() && !file.getName().endsWith(".scala"))) None else Some(file)
 }, hint) {
 
@@ -36,7 +36,7 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
     val ast = Compiler.parse(file)
 
     import Compiler.syntaxAnalyzer.global._
-    
+
     /**
      * Process AST to collect translation keys
      */
@@ -51,13 +51,13 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
             walkList(stats, translationKeyAccu)
           }
           // @TranslationKey annotation.
-          case vd @ ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs @ Literal(Constant(value:String))) => {
+          case vd @ ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs @ Literal(Constant(value: String))) => {
             val translationKeyAnnotation = vd.mods.annotations.find(_ match {
-              case Apply(Select(New(Ident(name: Name)) , _), _) => name.toTypeName.toString=="TranslationKey"
+              case Apply(Select(New(Ident(name: Name)), _), _) => name.toTypeName.toString == "TranslationKey"
               case _ => false
             })
             walkList(List(tpt, rhs), translationKeyAnnotation match {
-              case Some(_) => translationKeyAccu + value 
+              case Some(_) => translationKeyAccu + value
               case _ => translationKeyAccu
             })
           }
@@ -100,7 +100,7 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
             translationKeyAccu
           }
           case Select(qualifier: Tree, sym) => {
-              walkList(qualifier.children, translationKeyAccu)
+            walkList(qualifier.children, translationKeyAccu)
           }
           case If(cond: Tree, thenp: Tree, elsep: Tree) => {
             walkList(List(cond, thenp, elsep), translationKeyAccu)
@@ -138,8 +138,12 @@ final class ScalaExtractor(override val file: File, override val hint:Extraction
           case Throw(expr: Tree) => {
             walk(expr, translationKeyAccu)
           }
-          case Typed(expr: Tree, tpt: Tree)=>{
+          case Typed(expr: Tree, tpt: Tree) => {
             walkList(List(expr, tpt), translationKeyAccu)
+          }
+          case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) => walkList(List(tpt, tpt), translationKeyAccu)
+          case ExistentialTypeTree(tpt: Tree, whereClauses: List[Tree]) => {
+            walkList(tpt :: whereClauses, translationKeyAccu)
           }
           // TODO Replace by proper type-specific handling
           case a => {
