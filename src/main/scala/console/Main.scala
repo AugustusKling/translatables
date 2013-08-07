@@ -86,12 +86,12 @@ object Main extends App with PseudoTranslationGenerator {
         }
       } text ("Target file to collect texts to translate.")
       opt[String]("language") action { (languageCode, c) =>
-        try {
-          val lang = Class.forName("languages." + languageCode + "$").getField("MODULE$").get(null).asInstanceOf[Language];
-          c.copy(language = lang)
-        } catch {
-          case e: Throwable => throw new RuntimeException(doTranslate("No supported language found by code “{0}”. Please consult the docs about the members of package “languages”.", languageCode), e)
-        }
+        val withCountry = new Regex("^([^_]+)_([^_]+)")
+        val lang = Language.fromLocale(languageCode match {
+          case withCountry(language, country) => new Locale(language, country)
+          case language => new Locale(language)
+        })
+        c.copy(language = lang)
       } text ("Target language. Supply a lowercase ISO 639 code.")
       opt[String]("calls") unbounded () required () action { (functionName, c) =>
         c.copy(translationCalls = c.translationCalls :+ functionName)
