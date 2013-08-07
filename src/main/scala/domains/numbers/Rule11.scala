@@ -13,7 +13,7 @@ class Rule11(locale: Locale) extends domains.Number(locale, List(
   Rule11.seven,
   Rule11.zero))
 
-// TODO These are the rules of Mozilla but Lauchpad put cases for three, seven and zero together.
+// These are the rules of Mozilla and Unicode but Lauchpad put cases for three, seven and zero together.
 object Rule11 {
   // is 1: 1
   val one = new Category("one", _ == 1)

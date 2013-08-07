@@ -11,7 +11,6 @@ import domains.numbers.Rule1
 import domains.numbers.Rule2
 import domains.numbers.Rule3
 import domains.numbers.Rule4
-import domains.numbers.Rule15
 import domains.numbers.Rule5
 import domains.numbers.Rule6
 import domains.numbers.Rule7
@@ -22,7 +21,14 @@ import domains.numbers.Rule11
 import domains.numbers.Rule12
 import domains.numbers.Rule13
 import domains.numbers.Rule14
+import domains.numbers.Rule15
 import domains.numbers.Rule16
+import domains.numbers.Rule17
+import domains.numbers.Rule18
+import domains.numbers.Rule19
+import domains.numbers.Rule20
+import domains.numbers.Rule21
+import domains.numbers.Rule22
 import languages.de_DE
 import languages.de
 import languages.en_CA
@@ -41,11 +47,6 @@ import languages.ko
 import languages.zh_CN
 import languages.zh_TW
 import languages.zh
-import domains.numbers.Rule17
-import domains.numbers.Rule18
-import domains.numbers.Rule19
-import domains.numbers.Rule20
-import domains.numbers.Rule21
 
 /**
  * Target language that consists of domains. It serves as translation target and translation memory.
@@ -137,16 +138,19 @@ object Language {
     }
     lazy val pluralizationRuleLanguage = locale.getLanguage match {
       case "zh" | "ja" | "ko" | "vi" | "fa" | "tr" | "th" | "lo" | "my" | "ka" | "id" | "mn" | "dv" | "dz" | "kr"
-        | "km" | "mg" | "bo" | "tk" | "ug" | "hy" | "cv" | "kk" | "ky" | "tt" | "uz" => Option(new Rule0(locale))
+        | "km" | "mg" | "bo" | "tk" | "ug" | "hy" | "cv" | "kk" | "ky" | "tt" | "uz" | "bm" => Option(new Rule0(locale))
       case "da" | "nl" | "fo" | "fy" | "de" | "nn" | "nb" | "no" | "sv" | "et" | "fi" | "hu" | "eu" | "la" | "el"
         | "he" | "it" | "pt" | "es" | "ca" | "bg" | "eo" | "yi"
         // Former code for he was iw, former code for yi was ji, former code for id was in.
         | "iw" | "ji" | "in"
         | "hi" | "sq" | "as" | "gu" | "ha" | "kn" | "ml" | "se" | "om" | "rm" | "si" | "st" | "sw" | "tg" | "te"
         | "ts" | "ur" | "wa" | "xh" | "af" | "an" | "ay" | "ny" | "io" | "rw" | "ku" | "lb" | "mr" | "ne" | "oj"
-        | "os" | "ps" | "pa" | "sc" | "zu" | "aa" | "az" | "bn" | "ff" | "gl" | "ht" | "ia" | "li" | "ms" | "or"
-        | "sd" | "so" | "ta" => Option(new Rule1(locale))
-      case "fr" | "ln" | "oc" | "ti" | "tl" | "ak" | "am" | "mi" | "wo" | "yo" => Option(new Rule2(locale))
+        | "os" | "ps" | "pa" | "sc" | "zu" | "aa"
+        // TODO Unicode put this to Rule0. 
+        | "az"
+        | "bn" | "ff" | "gl" | "ht" | "ia" | "li" | "ms" | "or"
+        | "sd" | "so" | "ta" | "ast" | "asa" | "bem" | "bez" | "brx"|"chr"|"cgg" => Option(new Rule1(locale))
+      case "fr" | "ln" | "oc" | "ti" | "tl" | "ak" | "am" | "mi" | "wo" | "yo" | "bh" => Option(new Rule2(locale))
       case "lv" => Option(new Rule3(locale))
       case "gd" => Option(new Rule4(locale))
       case "ro" => Option(new Rule5(locale))
@@ -166,6 +170,7 @@ object Language {
       case "cy" => Option(new Rule19(locale))
       case "jv" => Option(new Rule20(locale))
       case "qu" => Option(new Rule21(locale))
+      case "tzm" => Option(new Rule22(locale))
       case _ => None
     }
     new Language(locale, List(

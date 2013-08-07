@@ -27,6 +27,7 @@ import domains.numbers.Rule18
 import domains.numbers.Rule19
 import domains.numbers.Rule20
 import domains.numbers.Rule21
+import domains.numbers.Rule22
 
 @RunWith(classOf[JUnitRunner])
 class NumberRules extends FunSuite {
@@ -238,5 +239,11 @@ class NumberRules extends FunSuite {
     val rule = new Rule21(Locale.ROOT)
     assertCategory(rule, List(0, 2, 3, 4, 5, 6), Rule21.zero)
     assertCategory(rule, List(1, 21, 31, 41, 51, 61), Rule21.one)
+  }
+
+  test("Rule22") {
+    val rule = new Rule22(Locale.ROOT)
+    assertCategory(rule, List(0, 1, 11, 12, 13, 14, 15, 97, 98, 99), Rule22.zero)
+    assertCategory(rule, List(2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101, 1000), Rule22.two)
   }
 }
