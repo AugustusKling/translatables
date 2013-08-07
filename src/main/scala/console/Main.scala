@@ -54,7 +54,11 @@ case class Config(
   /**
    * File where extracted translations end up.
    */
-  target: File = File.createTempFile("extracted-translations", ".json"))
+  target: File = File.createTempFile("extracted-translations", ".json"),
+  /**
+   * Dummy translations that help to find untranslated parts of a software.
+   */
+  pseudo: Boolean = false)
 
 object Main extends App with PseudoTranslationGenerator {
   // Set up translations of this program
@@ -92,6 +96,9 @@ object Main extends App with PseudoTranslationGenerator {
       opt[String]("calls") unbounded () required () action { (functionName, c) =>
         c.copy(translationCalls = c.translationCalls :+ functionName)
       } text ("Name of translation methods.")
+      opt[Unit]("pseudo-translations") action { (_, c) =>
+        c.copy(pseudo = true)
+      } text ("When given translations with markers and diacritcs are made up to help spotting forgotten translations. Note that is option overwrites any existing translations!")
       // Workaround for scopt forgetting about last parameter set.
       note("")
     }
@@ -104,7 +111,7 @@ object Main extends App with PseudoTranslationGenerator {
       case "properties" => PropertiesFormat
       case "po" => POFormat
     }
-    
+
     val existingTranslations: Map[String, StoredTranslation[_]] = if (config.target.exists()) {
       // Use existing translations as default to retain them.
       format.read(config.target)
@@ -124,7 +131,11 @@ object Main extends App with PseudoTranslationGenerator {
     println(doTranslate("Extracted {number(0)} translation.", sourceKeys.size.asInstanceOf[Object]))
 
     // Only retain keys that are still in use but take over existing translations for such keys.
-    val merged: Map[String, String] = TreeMap( sourceKeys.map(key => key -> existingTranslations.getOrElse(key, "")):_*);
+    val merged: Map[String, String] = TreeMap(sourceKeys.map(key => key -> (if (config.pseudo) {
+      generatePseudoTranslation(key)
+    } else {
+      existingTranslations.getOrElse(key, StoredTranslation(key, "", None)).translation
+    })): _*)
 
     format.write(config.target, merged, existingTranslations, config.language)
     println(doTranslate("Merged new translations into {0}.", config.target.getAbsolutePath()))
