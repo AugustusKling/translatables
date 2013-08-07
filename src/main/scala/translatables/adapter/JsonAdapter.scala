@@ -6,6 +6,7 @@ import serialization.Json
 import scala.io.Source
 import scala.collection.JavaConversions
 import java.io.InputStream
+import java.lang.IllegalArgumentException
 
 /**
  * Makes translations from JSON files available.
@@ -15,19 +16,27 @@ class JsonAdapter(private val source: Source) extends Adapter {
   /**
    * @param source JSON file.
    */
-  def this(source: File)={
-    this(Source.fromFile(source))
+  def this(source: File) = {
+    this(if (source != null) Source.fromFile(source) else throw new IllegalArgumentException)
   }
   /**
    * @param inputStream Serialized JSON.
    */
-  def this(inputStream:InputStream)={
-    this(Source.fromInputStream(inputStream))
+  def this(inputStream: InputStream) = {
+    this(if (inputStream != null) Source.fromInputStream(inputStream) else throw new IllegalArgumentException)
   }
-  
-  val existingTranslations:Map[String, String] = Json.read(source.mkString);
+
+  if (source == null) {
+    throw new IllegalArgumentException();
+  }
+
+  val existingTranslations: Map[String, String] = try {
+    Json.read(source.mkString)
+  } finally {
+    source.close
+  }
   val translations = new MapAdapter(JavaConversions.mapAsJavaMap(existingTranslations));
-  
+
   def get(translationKey: String): String = {
     return translations.get(translationKey);
   }

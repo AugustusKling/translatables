@@ -1,24 +1,39 @@
 package console
 
+import java.io.ByteArrayInputStream
 import java.io.File
-import translatables.Language
-import languages.Root
-import languages.de
-import languages.en
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.FileWriter
+import java.util.Locale
+import java.util.Properties
+import scala.collection.JavaConverters
+import scala.collection.immutable.TreeMap
+import scala.io.Source
+import extract.ExtractionHint
 import extract.JavaExtractor
 import extract.ScalaExtractor
+import languages.de
+import languages.en
+import languages.Root
 import serialization.Json
-import scala.io.Source
-import java.io.FileWriter
-import translatables.Translation
-import extract.ExtractionHint
-import translatables.adapter.MapAdapter
-import translatables.DoTranslate.doTranslate
 import translatables.DoTranslate
-import java.util.Locale
+import translatables.DoTranslate.doTranslate
+import translatables.Language
+import translatables.StoredTranslation
 import translatables.adapter.JsonAdapter
-import scala.collection.SortedMap
-import scala.collection.immutable.TreeMap
+import translatables.adapter.POAdapter
+import serialization.POParser.POTranslation
+import translatables.Format
+import translatables.Translation
+import translatables.ConstantPlaceholder
+import translatables.Replaceable
+import translatables.Placeholder
+import translatables.TypedPlaceholder
+import scala.util.matching.Regex
+import serialization.POFormat
+import serialization.JsonFormat
+import serialization.PropertiesFormat
 
 /**
  * Configuration for extract command.
@@ -41,12 +56,12 @@ case class Config(
    */
   target: File = File.createTempFile("extracted-translations", ".json"))
 
-object Main extends App {
+object Main extends App with PseudoTranslationGenerator {
   // Set up translations of this program
   val programLanguageCode = Locale.getDefault().getLanguage();
   val translationFolder = "translations/"
   val programAdapter = new JsonAdapter(Option(getClass().getClassLoader().getResourceAsStream(translationFolder + programLanguageCode + ".json"))
-    .getOrElse(getClass().getResourceAsStream(translationFolder+"en.json")))
+    .getOrElse(Option(getClass().getResourceAsStream(translationFolder + "en.json")).getOrElse(new ByteArrayInputStream("{}".getBytes("UTF-8")))))
   DoTranslate.setParams(if (programLanguageCode == "de") de else en, programAdapter)
 
   // Define what the program invocation needs to look like.
@@ -61,13 +76,17 @@ object Main extends App {
       } text ("Path to root of source code.")
       opt[File]("target") unbounded () required () action { (file, c) =>
         c.copy(target = file)
+        getExtension(file).get match {
+          case "json" | "properties" | "po" => c.copy(target = file)
+          case _ => throw new RuntimeException(doTranslate("Translation file format was not detected. Make sure it ends in .json, .po or .properties."))
+        }
       } text ("Target file to collect texts to translate.")
       opt[String]("language") action { (languageCode, c) =>
         try {
-        val lang = Class.forName("languages."+languageCode+"$").getField("MODULE$").get(null).asInstanceOf[Language];
-        c.copy(language = lang)
+          val lang = Class.forName("languages." + languageCode + "$").getField("MODULE$").get(null).asInstanceOf[Language];
+          c.copy(language = lang)
         } catch {
-          case e:Throwable => throw new RuntimeException(doTranslate("No supported language found by code “{0}”. Please consult the docs about the members of package “languages”.", languageCode), e)
+          case e: Throwable => throw new RuntimeException(doTranslate("No supported language found by code “{0}”. Please consult the docs about the members of package “languages”.", languageCode), e)
         }
       } text ("Target language. Supply a lowercase ISO 639 code.")
       opt[String]("calls") unbounded () required () action { (functionName, c) =>
@@ -80,9 +99,15 @@ object Main extends App {
 
   // Parse command line arguments and extract.
   parser.parse(args, Config()) map { config =>
-    val existingTranslations: Map[String, String] = if (config.target.exists()) {
+    val format = getExtension(config.target).get match {
+      case "json" => JsonFormat
+      case "properties" => PropertiesFormat
+      case "po" => POFormat
+    }
+    
+    val existingTranslations: Map[String, StoredTranslation[_]] = if (config.target.exists()) {
       // Use existing translations as default to retain them.
-      Json.read(Source.fromFile(config.target).mkString)
+      format.read(config.target)
     } else {
       // Start with an empty set of translations.
       Map()
@@ -101,16 +126,25 @@ object Main extends App {
     // Only retain keys that are still in use but take over existing translations for such keys.
     val merged: Map[String, String] = TreeMap( sourceKeys.map(key => key -> existingTranslations.getOrElse(key, "")):_*);
 
-    val fw = new FileWriter(config.target)
-    try {
-      // Persist extracted translations.
-      fw.write(Json.write(merged))
-      println(doTranslate("Merged new translations into {0}.", config.target.getAbsolutePath()))
-    } finally {
-      fw.close()
-    }
+    format.write(config.target, merged, existingTranslations, config.language)
+    println(doTranslate("Merged new translations into {0}.", config.target.getAbsolutePath()))
+
   } getOrElse {
     // arguments are bad, usage message will have been displayed
     System.err.println(doTranslate("Extraction aborted due to malformed invocation."));
   }
+
+  def autoClose[T <: AutoCloseable](resource: T)(block: T => Unit) {
+    try {
+      block(resource)
+    } finally {
+      if (resource != null) resource.close()
+    }
+  }
+
+  def getExtension(file: File): Option[String] = {
+    val segments = file.getName().split("\\.")
+    if (segments.size == 0) None else Option(segments.last)
+  }
+
 }
