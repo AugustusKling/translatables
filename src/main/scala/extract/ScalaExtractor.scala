@@ -1,16 +1,12 @@
 package extract
 
 import java.io.File
-import translatables.Language
-import java.io.FileReader
-import java.io.BufferedReader
-import translatables.Translation
-import translatables.Format
-import scala.reflect.internal.Trees
-import scala.tools.nsc.Global._
-import scala.reflect.api.Universe
-import scala.reflect.io.AbstractFile
+import java.io.IOException
 import scala.reflect.internal.util.BatchSourceFile
+import scala.reflect.io.AbstractFile
+import scala.reflect.io.Path.jfile2path
+import scala.tools.nsc.Global
+import scala.tools.nsc.Settings
 
 /**
  * Parses Scala source code looking for translations.
@@ -23,7 +19,11 @@ final class ScalaExtractor(override val file: File, override val hint: Extractio
 
     // Instruct compiler to parse code to AST
     import scala.tools.nsc._
-    object Compiler extends Global(new Settings()) {
+    val settings = new Settings()
+    // Use the classpath of the running code for compiling. This make the Scala library available during compilation.
+    settings.usejavacp.value = true
+    //settings processArgumentString ("-usejavacp")
+    object Compiler extends Global(settings) {
       new Run
 
       def parse(path: File) = {
