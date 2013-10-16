@@ -4,6 +4,7 @@ import translatables.Language
 import java.io.File
 import translatables.Translation
 import translatables.Format
+import java.nio.charset.MalformedInputException
 
 /**
  * Searches source code file for translations
@@ -32,7 +33,15 @@ abstract class FileExtractor[NodeType](val file: File, val filter: (File) => Opt
     val collectedKeys = scala.collection.mutable.Set[String]()
     val fileWalker = new FileWalker()
     fileWalker.walk(file, filter, file => {
-      collectedKeys ++= extractSingleFile(file)
+      try {
+        collectedKeys ++= extractSingleFile(file)
+      } catch {
+        case e: MalformedInputException => {
+          System.err.println("Skipping over unparsable file " + file.getAbsolutePath)
+          e.printStackTrace(System.err)
+        }
+        case e: Exception => throw new IllegalArgumentException("Error parsing " + file.getAbsolutePath, e)
+      }
     })
     collectedKeys.toSet
   }
