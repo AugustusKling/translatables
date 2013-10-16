@@ -1,6 +1,8 @@
 {
-	"Merged new translations into {plain(plain(0))}." : "",
+	"Extracted {one(number(0))} translation." : "Extracted {0} translation.",
 	"Extracted {zero(number(0))} translation." : "Extracted {0} translations.",
-	"Extracted {one(number(0))} translation." : "",
-	"Running extractor {plain(plain(0))}" : ""
+	"Extraction aborted due to malformed invocation." : "",
+	"Merged new translations into {plain(plain(0))}." : "",
+	"Running extractor {plain(plain(0))}" : "",
+	"Version {plain(plain(0))}, use with care." : ""
 }

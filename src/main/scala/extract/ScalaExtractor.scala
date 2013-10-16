@@ -141,7 +141,7 @@ final class ScalaExtractor(override val file: File, override val hint: Extractio
           case Typed(expr: Tree, tpt: Tree) => {
             walkList(List(expr, tpt), translationKeyAccu)
           }
-          case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) => walkList(List(tpt, tpt), translationKeyAccu)
+          case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) => walkList(List(tpt, rhs), translationKeyAccu)
           case ExistentialTypeTree(tpt: Tree, whereClauses: List[Tree]) => {
             walkList(tpt :: whereClauses, translationKeyAccu)
           }
