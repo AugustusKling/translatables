@@ -4,7 +4,7 @@ import java.util.Locale
 import translatables.Category
 
 /**
- * Families: Slavic (Macedonian)
+ * Families: Slavic
  */
 class Rule14(locale: Locale) extends domains.Number(locale, List(
   Rule14.one,

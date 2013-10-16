@@ -4,7 +4,7 @@ import java.util.Locale
 import translatables.Category
 
 /**
- * Manx, spoken in the United Kingdom. Sanskrit.
+ * Manx, spoken in the United Kingdom. Sanskrit. Sami languages.
  */
 class Rule18(locale: Locale) extends domains.Number(locale, List(
   Rule18.one,

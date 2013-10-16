@@ -2,11 +2,11 @@ package translatables
 
 import java.util.Locale
 import languages.Root
-import domains.numbers.Rule0
 import domains.Number
 import domains.Date
 import domains.Time
 import domains.Currency
+import domains.numbers.Rule0
 import domains.numbers.Rule1
 import domains.numbers.Rule2
 import domains.numbers.Rule3
@@ -47,6 +47,9 @@ import languages.ko
 import languages.zh_CN
 import languages.zh_TW
 import languages.zh
+import domains.numbers.Rule23
+import domains.numbers.Rule24
+import domains.numbers.Rule25
 
 /**
  * Target language that consists of domains. It serves as translation target and translation memory.
@@ -130,47 +133,110 @@ object Language {
   /**
    * Builds language with fallback to root language which uses Java's localization capabilities. Pluralization rules
    * are not guaranteed to be known for any given locale.
+   * @param locale The language (ISO 639 codes from all 6 parts) and its varieties. Falls back to root language in case
+   *  the requested language is unsupported. Please do request languages additionally required given they are listed
+   *  in any part of ISO 639.
    */
   def autoConstruct(locale: Locale): Language = {
     val pluralizationRuleLanguageCountry = (locale.getLanguage() + "_" + locale.getCountry) match {
       case "pt_BR" => Option(new Rule2(locale))
       case _ => None
     }
+    // See NumberRules unit test for overview.
     lazy val pluralizationRuleLanguage = locale.getLanguage match {
-      case "zh" | "ja" | "ko" | "vi" | "fa" | "tr" | "th" | "lo" | "my" | "ka" | "id" | "mn" | "dv" | "dz" | "kr"
-        | "km" | "mg" | "bo" | "tk" | "ug" | "hy" | "cv" | "kk" | "ky" | "tt" | "uz" | "bm" => Option(new Rule0(locale))
-      case "da" | "nl" | "fo" | "fy" | "de" | "nn" | "nb" | "no" | "sv" | "et" | "fi" | "hu" | "eu" | "la" | "el"
-        | "he" | "it" | "pt" | "es" | "ca" | "bg" | "eo" | "yi"
-        // Former code for he was iw, former code for yi was ji, former code for id was in.
-        | "iw" | "ji" | "in"
-        | "hi" | "sq" | "as" | "gu" | "ha" | "kn" | "ml" | "se" | "om" | "rm" | "si" | "st" | "sw" | "tg" | "te"
-        | "ts" | "ur" | "wa" | "xh" | "af" | "an" | "ay" | "ny" | "io" | "rw" | "ku" | "lb" | "mr" | "ne" | "oj"
+      // other → everything
+      case "zh" | "ja" | "ko" | "vi" | "fa" | "tr" | "th" | "lo" | "my" | "ka"
+        // Former code for id was in.
+        | "id" | "in"
+        | "dv" | "dz" | "kr" | "km"
+        | "bo" | "tk" | "ug" | "hy" | "cv" | "tt" | "uz" | "bm" | "ig" | "kea" | "ses" | "kde" | "sah" | "sg" | "ii"
+        | "to"
+        // Yoruba does not have plurals but denotes amounts by pluaral words such as àwọn but number placeholders
+        // should serve the same purpose.
+        | "yo" => Option(new Rule0(locale))
+      // one → n is 1;
+      // other → everything else
+      case "da" | "nl" | "fo" | "fy" | "de" | "nn" | "nb" | "no" | "sv" | "et" | "fi" | "mn"
+        // Unicode splits out case for 1 for kk. learn101.org  has a plural, too. Launchpad puts it to Rule0.
+        | "kk"
+        | "ky"
+        // Unicode put hu to Rule0 but Lauchpad, Mozilla nad learn101.org have it in Rule1.
+        | "hu"
+        | "eu" | "la" | "el"
+        // Unicode uses own rule but Lauchpad, Mozilla nad learn101.org have it in Rule1.
+        | "he"
+        // Former code for he was iw
+        | "iw"
+        | "it" | "pt" | "es" | "ca" | "bg" | "eo"
+        // Former code for yi was ji
+        | "yi" | "ji"
+        // Unicode put hi to Rule2 but various open source projects use Rule1.
+        | "hi"
+        | "sq" | "as" | "gu" | "ha"
+        // Unicode put kn to Rule0.
+        // Lauchpad uses Rule1: https://answers.launchpad.net/launchpad/+question/13561
+        // Gnome uses Rule1: https://l10n.gnome.org/teams/kn/
+        | "kn"
+        | "ml"
+        | "om" | "rm" | "si" | "st" | "sw" | "tg" | "te"
+        | "ts" | "ur"
+        | "xh" | "af" | "an" | "ay" | "ny" | "io" | "rw" | "ku" | "lb" | "mr" | "ne" | "oj"
         | "os" | "ps" | "pa" | "sc" | "zu" | "aa"
         // TODO Unicode put this to Rule0. 
         | "az"
-        | "bn" | "ff" | "gl" | "ht" | "ia" | "li" | "ms" | "or"
-        | "sd" | "so" | "ta" | "ast" | "asa" | "bem" | "bez" | "brx"|"chr"|"cgg" => Option(new Rule1(locale))
-      case "fr" | "ln" | "oc" | "ti" | "tl" | "ak" | "am" | "mi" | "wo" | "yo" | "bh" => Option(new Rule2(locale))
+        | "bn" | "ff" | "gl" | "ht" | "ia" | "li"
+        // Unicode puts ms to Rule0.
+        | "ms"
+        | "or"
+        | "sd" | "so" | "ta" | "ast" | "asa" | "bem" | "bez" | "brx" | "chr" | "cgg" | "ee" | "fur" | "lg" | "haw"
+        | "kaj" | "kkj" | "kl" | "ks" | "jmc" | "mas" | "mgo" | "nah" | "nnh" | "jgo" | "nd" | "nyn" | "pap" | "rof"
+        | "rwk" | "ssy" | "saq" | "seh" | "ksb" | "sn" | "xog" | "ckb" | "nr" | "ss" | "gsw" | "syr" | "teo" | "tig"
+        | "tn" | "kcg" | "ve" | "vo" | "vun" | "wae" => Option(new Rule1(locale))
+      // one → n in 0..1;
+      // other → everything else
+      case "fr" | "ln" | "oc" | "ti" | "tl" | "ak" | "am" | "mi"
+        // Walloon is similar to French.
+        | "wa" | "wln"
+        // Unicode puts wo to Rule0 but it seems to use articles to denote plurals.
+        | "wo"
+        | "bh" | "fil" | "guw" | "nso"
+        // Fractions should split below and above 2 for kab.
+        | "kab"
+        // Unicode puts mg to Rule2 but Lauchpad and learn101.org have it in Rule0. Even though Malagasy does not have
+        // plurals for nouns it does distinguish 2 forms for pronouns.
+        | "mg" => Option(new Rule2(locale))
       case "lv" => Option(new Rule3(locale))
       case "gd" => Option(new Rule4(locale))
       case "ro" => Option(new Rule5(locale))
       case "lt" => Option(new Rule6(locale))
-      case "be" | "bs" | "hr" | "sr" | "ru" | "uk" => Option(new Rule7(locale))
+      case "be" | "bs" | "hr" | "sr" | "ru" | "uk" | "sh" => Option(new Rule7(locale))
       case "sk" | "cs" => Option(new Rule8(locale))
       case "pl" => Option(new Rule9(locale))
       case "sl" => Option(new Rule10(locale))
       case "ga" => Option(new Rule11(locale))
       case "ar" => Option(new Rule12(locale))
       case "mt" => Option(new Rule13(locale))
+      // Unicode does not split off the ends in 2 case.
       case "mk" => Option(new Rule14(locale))
+      // Unicode puts is to Rule1.
       case "is" => Option(new Rule15(locale))
       case "br" => Option(new Rule16(locale))
+      // Unicode disagrees with kw beeing Rule17 and puts it into Rule18.
       case "kw" => Option(new Rule17(locale))
-      case "gv" | "sa" => Option(new Rule18(locale))
+      // Unicode uses own rules for gv.
+      case "gv"
+      	// Various Sami languages have a dual cases.
+        | "sa" | "smn" | "iu" | "smj" | "naq" | "smi" | "sms" | "sma" | "sjd" | "sje" | "se" | "sme" => Option(new Rule18(locale))
       case "cy" => Option(new Rule19(locale))
+      // Unicode does not split out extra case for 0.
       case "jv" => Option(new Rule20(locale))
       case "qu" => Option(new Rule21(locale))
       case "tzm" => Option(new Rule22(locale))
+      case "ksh"
+        // Fractions should split below and above 2 for lag.
+        | "lag" => Option(new Rule23(locale))
+      case "mo" => Option(new Rule24(locale))
+      case "shi" => Option(new Rule25(locale))
       case _ => None
     }
     new Language(locale, List(

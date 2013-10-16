@@ -28,6 +28,9 @@ import domains.numbers.Rule19
 import domains.numbers.Rule20
 import domains.numbers.Rule21
 import domains.numbers.Rule22
+import domains.numbers.Rule23
+import domains.numbers.Rule24
+import domains.numbers.Rule25
 
 @RunWith(classOf[JUnitRunner])
 class NumberRules extends FunSuite {
@@ -90,7 +93,7 @@ class NumberRules extends FunSuite {
       208, 209, 210, 211, 212), Rule5.zero)
     assertCategory(rule, List(20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
       42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68,
-      69), Rule5.twenty)
+      69, 100, 120, 121, 150, 199, 200), Rule5.twenty)
   }
 
   test("Rule6") {
@@ -245,5 +248,27 @@ class NumberRules extends FunSuite {
     val rule = new Rule22(Locale.ROOT)
     assertCategory(rule, List(0, 1, 11, 12, 13, 14, 15, 97, 98, 99), Rule22.zero)
     assertCategory(rule, List(2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101, 1000), Rule22.two)
+  }
+
+  test("Rule23") {
+    val rule = new Rule23(Locale.ROOT)
+    assertCategory(rule, List(0), Rule23.zero)
+    assertCategory(rule, List(1), Rule23.one)
+    assertCategory(rule, List(0.1, 2, 3, 4, 5, 6, 7, 8, 100), Rule23.two)
+  }
+
+  test("Rule24") {
+    val rule = new Rule24(new Locale("mo"))
+    assertCategory(rule, List(0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 101, 102, 103, 119,
+      201, 219), Rule24.zero)
+    assert(rule.getCategory(1) === Rule24.one)
+    assertCategory(rule, List(20, 21, 22, 23, 45, 50, 99, 100, 120, 121, 200, 220, 221, 222, 300, 1.2, 2.07, 20.94), Rule24.twenty)
+  }
+
+  test("Rule25") {
+    val rule = new Rule25(new Locale("shi"))
+    assertCategory(rule, List(0, 1), Rule25.zero)
+    assertCategory(rule, List(2, 3, 4, 5, 6, 7, 8, 9, 10), Rule25.two)
+    assertCategory(rule, List(1.2, 2.07, 11, 12, 55, 100, 424), Rule25.eleven)
   }
 }
