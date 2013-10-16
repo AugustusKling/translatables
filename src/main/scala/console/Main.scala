@@ -64,8 +64,8 @@ object Main extends App with PseudoTranslationGenerator {
   // Set up translations of this program
   val programLanguageCode = Locale.getDefault().getLanguage();
   val translationFolder = "translations/"
-  val programAdapter = new JsonAdapter(Option(getClass().getClassLoader().getResourceAsStream(translationFolder + programLanguageCode + ".json"))
-    .getOrElse(Option(getClass().getResourceAsStream(translationFolder + "en.json")).getOrElse(new ByteArrayInputStream("{}".getBytes("UTF-8")))))
+  val programAdapter = new JsonAdapter(Option(ClassLoader.getSystemResourceAsStream(translationFolder + programLanguageCode + ".json"))
+    .getOrElse(Option(ClassLoader.getSystemResourceAsStream(translationFolder + "en.json")).getOrElse(new ByteArrayInputStream("{}".getBytes("UTF-8")))))
   DoTranslate.setParams(if (programLanguageCode == "de") de else en, programAdapter)
 
   // Define what the program invocation needs to look like.
