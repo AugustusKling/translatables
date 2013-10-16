@@ -1,9 +1,3 @@
-import AssemblyKeys._
-
-assemblySettings
-
-test in assembly := {}
-
 name := "translatables"
 
 version := "1.0"
@@ -23,15 +17,5 @@ libraryDependencies += "org.scala-lang" % "scala-compiler" % "2.10.2"
 libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.10.2"
 
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.0.0"
-
-seq(ProguardPlugin.proguardSettings :_*)
-
-proguardOptions += keepMain("console.Main")
-
-proguardOptions += "-keep class translatables.** { *; }"
-
-// proguardOptions += "-dontshrink"
-
-// proguardOptions += "-dontoptimize"
 
 seq(GenJavaDoc.javadocSettings :_*)
