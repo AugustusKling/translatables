@@ -24,8 +24,6 @@ libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.10.2"
 
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.0.0"
 
-libraryDependencies += "com.google.code.javaparser" % "javaparser" % "1.0.8"
-
 seq(ProguardPlugin.proguardSettings :_*)
 
 proguardOptions += keepMain("console.Main")

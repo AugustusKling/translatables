@@ -30,6 +30,8 @@ class Java extends FunSuite {
     		
     		tQuoted("{{");
     		
+    		List<String> infer = new ArrayList<>();
+    		
     		tQuotedSimple("a {{ b");
     		
     		tQuotedPlaceholder("a {{ {x} {{{y} end");
@@ -49,5 +51,41 @@ class Java extends FunSuite {
 
     val jeQuotedPlaceholder = new JavaExtractor(src, new ExtractionHint(Seq("tQuotedPlaceholder")))
     assert(jeQuotedPlaceholder.extract(Root) === Set("a {{ {plain(plain(x))} {{{plain(plain(y))} end", "annotated"))
+  }
+  
+  test("Bogus arguments to translation call") {
+	  val src = File.createTempFile("test", ".java")
+			  val fw = new FileWriter(src)
+	  fw.write("""import translatables.TranslationKey;
+			  
+			  class Test {
+	      
+			  @TranslationKey
+			  private static final String MY_NUMBER_XYZ_SAMPLE1 = "";
+
+			  @TranslationKey
+			  private static final int MY_NUMBER_XYZ_SAMPLE2 = 13;
+			  
+			  @TranslationKey
+			  private static final String MY_NUMBER_XYZ_SAMPLE3 = null;
+			  
+			  public void main(String[] args){
+				  t();
+				  
+				  t("");
+				  
+				  t(15, "a {{ b");
+				  
+				  t(null);
+			  	
+			  	String variable="sdf";
+			  	t(variable);
+				  }
+			  }""")
+			  fw.close()
+			  
+			  val je = new JavaExtractor(src, new ExtractionHint(Seq("t")))
+	  assert(je.extract(Root) === Set(""))
+	  assert(je.extract(de) === Set(""))
   }
 }
