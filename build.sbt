@@ -6,6 +6,9 @@ scalaVersion := "2.10.2"
 
 autoScalaLibrary := false
 
+// Properly set the classpath for unit test to include Scala.
+fork in Test := true
+
 libraryDependencies += "org.scala-lang" % "scala-library" % "2.10.2"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test"

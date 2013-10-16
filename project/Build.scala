@@ -38,7 +38,6 @@ object TranslatablesBuild extends Build {
     .settings(
       mergeRules,
       jarName in assembly := "translatables-minimal.jar",
-      test in assembly := {},
       assemblyOption in assembly ~= { _.copy(includeDependency = true) },
       assemblyOption in assembly ~= { _.copy(includeScala = false) })
 
@@ -61,7 +60,6 @@ object TranslatablesBuild extends Build {
           case x => old(x)
         }
       },
-      test in assembly := {},
       assemblyOption in assembly ~= { _.copy(includeDependency = true) },
       assemblyOption in assembly ~= { _.copy(includeBin = true) })
 
