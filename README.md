@@ -3,6 +3,8 @@ translatables
 
 translatables is a tool for localizing Scala and Java programs. It features a library to translate text by looking up translations from your translations file according to the grammar of the target language. A command line tool is also provided to scan Scala and Java sources for translatable texts, and to create and maintain translation lists.
 
+A JavaScript based implementation with [online demo](http://augustuskling.github.io/translatables-js/) of the same concept exists. The demo is not as feature-rich as this implementation.
+
 Multilingual domain aware translations
 --------------------------------------
 
