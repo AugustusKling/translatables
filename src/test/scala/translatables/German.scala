@@ -10,6 +10,7 @@ import translatables.adapter.MapAdapter
 import java.util.Date
 import java.util.Currency
 import languages.de_DE
+import java.util.Calendar
 
 @RunWith(classOf[JUnitRunner])
 class German extends FunSuite {
@@ -45,14 +46,16 @@ class German extends FunSuite {
       "{zero(number(x))}g" -> "{x}g",
       "Birthday on {digits(date(xyz))}." -> "Geburtstag am {xyz}.",
       "You spent {digits(currency(xyz))} on the present?" -> "Du hast {xyz} für das Geschenk ausgegeben?",
-      "Wake up! It's {local(time(xyz))}." -> "Aufwachen! Es ist {xyz}."
-      ))
+      "Wake up! It's {local(time(xyz))}." -> "Aufwachen! Es ist {xyz}."))
     val t = new Translation("{number(num)} flies fly.", de)
     assert(t(adapter, "num" -> 1000) === "Es fliegen 1.000 Fliegen.")
     val t2 = new Translation("{number(x)}g", de)
     assert(t2(adapter, "x" -> 1758.42) === "1.758,42g")
     val tDate = new Translation("Birthday on {date(xyz)}.", de)
     assert(tDate(adapter, "xyz" -> new Date(5)) === "Geburtstag am 01.01.1970.")
+    val cal = Calendar.getInstance()
+    cal.set(2013, 9, 17)
+    assert(tDate(adapter, "xyz" -> cal) === "Geburtstag am 17.10.2013.")
     val tTime = new Translation("Wake up! It's {time(xyz)}.", de)
     assert(tTime(adapter, "xyz" -> new Date(51661651)) === "Aufwachen! Es ist 15:21.")
     val tCurrency = new Translation("You spent {currency(xyz)} on the present?", de_DE)
