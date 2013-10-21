@@ -50,6 +50,7 @@ import languages.zh
 import domains.numbers.Rule23
 import domains.numbers.Rule24
 import domains.numbers.Rule25
+import scala.collection.JavaConversions
 
 /**
  * Target language that consists of domains. It serves as translation target and translation memory.
@@ -58,6 +59,16 @@ import domains.numbers.Rule25
  * @param fallback Other language that is queried for domains and translation if missing in this language.
  */
 class Language(val code: Locale, extensionDomains: List[Domain], val fallback: Option[Language]) {
+  /**
+   * @param code Language code such as de or de-CH.
+   * @param extensionDomains The contained domains define the grammar rules of the language.
+   * @param fallback Other language that is queried for domains and translation if missing in this language.
+   */
+  def this(code: Locale, extensionDomains: java.util.List[Domain], fallback: Language) {
+    // Convert Java types to Scala types.
+    this(code, JavaConversions.collectionAsScalaIterable(extensionDomains).toList, Option(fallback))
+  }
+
   /** From tranlationKey to translation */
   val translations: collection.mutable.Map[String, List[Placeholder]] = collection.mutable.Map()
 
@@ -225,7 +236,7 @@ object Language {
       case "kw" => Option(new Rule17(locale))
       // Unicode uses own rules for gv.
       case "gv"
-      	// Various Sami languages have a dual cases.
+        // Various Sami languages have a dual cases.
         | "sa" | "smn" | "iu" | "smj" | "naq" | "smi" | "sms" | "sma" | "sjd" | "sje" | "se" | "sme" => Option(new Rule18(locale))
       case "cy" => Option(new Rule19(locale))
       // Unicode does not split out extra case for 0.
