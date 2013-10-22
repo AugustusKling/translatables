@@ -2,7 +2,7 @@
 	"Extracted {one(number(0))} translation." : "{0} Übersetzung gefunden.",
 	"Extracted {zero(number(0))} translation." : "{0} Übersetzungen gefunden.",
 	"Extraction aborted due to malformed invocation." : "Extraktion abgebrochen wegen fehlerhaftem Aufruf.",
-	"Merged new translations into {plain(plain(0))}." : "Übersetzungen in {0} zusammengeführt.",
-	"Running extractor {plain(plain(0))}" : "Suche mittels {0}",
-	"Version {plain(plain(0))}, use with care." : "Version {0}, bitte Vorsicht."
+	"Merged new translations into {plain(0)}." : "Übersetzungen in {0} zusammengeführt.",
+	"Running extractor {plain(0)}" : "Suche mittels {0}",
+	"Version {plain(0)}, use with care." : "Version {0}, bitte Vorsicht."
 }

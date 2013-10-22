@@ -2,7 +2,7 @@
 	"Extracted {one(number(0))} translation." : "Extracted {0} translation.",
 	"Extracted {zero(number(0))} translation." : "Extracted {0} translations.",
 	"Extraction aborted due to malformed invocation." : "",
-	"Merged new translations into {plain(plain(0))}." : "",
-	"Running extractor {plain(plain(0))}" : "",
-	"Version {plain(plain(0))}, use with care." : ""
+	"Merged new translations into {plain(0)}." : "",
+	"Running extractor {plain(0)}" : "",
+	"Version {plain(0)}, use with care." : ""
 }
