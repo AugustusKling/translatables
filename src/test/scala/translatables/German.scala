@@ -44,9 +44,9 @@ class German extends FunSuite {
     val adapter = new MapAdapter(Map(
       "{zero(number(num))} flies fly." -> "Es fliegen {num} Fliegen.",
       "{zero(number(x))}g" -> "{x}g",
-      "Birthday on {digits(date(xyz))}." -> "Geburtstag am {xyz}.",
-      "You spent {digits(currency(xyz))} on the present?" -> "Du hast {xyz} für das Geschenk ausgegeben?",
-      "Wake up! It's {local(time(xyz))}." -> "Aufwachen! Es ist {xyz}."))
+      "Birthday on {date(xyz)}." -> "Geburtstag am {xyz}.",
+      "You spent {currency(xyz)} on the present?" -> "Du hast {xyz} für das Geschenk ausgegeben?",
+      "Wake up! It's {time(xyz)}." -> "Aufwachen! Es ist {xyz}."))
     val t = new Translation("{number(num)} flies fly.", de)
     assert(t(adapter, "num" -> 1000) === "Es fliegen 1.000 Fliegen.")
     val t2 = new Translation("{number(x)}g", de)

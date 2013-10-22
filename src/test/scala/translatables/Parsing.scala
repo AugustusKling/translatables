@@ -7,6 +7,7 @@ import languages.Root
 import languages.de
 import translatables.adapter.MapAdapter
 import java.util.Locale
+import languages.en
 
 @RunWith(classOf[JUnitRunner])
 class Parsing extends FunSuite {
@@ -34,7 +35,7 @@ class Parsing extends FunSuite {
   }
 
   test("translate") {
-    val adapter = new MapAdapter(Map("Hello {plain(plain(name))}" -> "Hallo {name}"))
+    val adapter = new MapAdapter(Map("Hello {plain(name)}" -> "Hallo {name}"))
     val translated = new Translation("Hello {name}", Root)(adapter, "name" -> "Fairy")
     assert(translated === "Hallo Fairy")
   }
@@ -54,7 +55,7 @@ class Parsing extends FunSuite {
     val withReplaceables = Format.parseTranslation("some {{ {x} and {test} plus {{{y}} or {{{test2} end")
     assert(withReplaceables === List(ConstantPlaceholder("some { "), Replaceable("x"), ConstantPlaceholder(" and "), Replaceable("test"), ConstantPlaceholder(" plus {"), Replaceable("y"), ConstantPlaceholder("} or {"), Replaceable("test2"), ConstantPlaceholder(" end")))
 
-    val adapter = new MapAdapter(Map("Hello {plain(plain(name))}" -> "Hallo {{{name} {{neu"))
+    val adapter = new MapAdapter(Map("Hello {plain(name)}" -> "Hallo {{{name} {{neu"))
     val translated = new Translation("Hello {name}", Root)(adapter, "name" -> "Fairy")
     assert(translated === "Hallo {Fairy {neu")
   }
@@ -63,23 +64,23 @@ class Parsing extends FunSuite {
     val quotedConstant = new Translation("{{", Root)
     val single = Format.parseSourceKey(quotedConstant)
     assert(single === List(ConstantPlaceholder("{{")))
-    assert(Format.buildAllTranslationKeys(quotedConstant)===Set("{{"))
+    assert(Format.buildAllTranslationKeys(quotedConstant) === Set("{{"))
 
     val withText = Format.parseSourceKey(new Translation("some {{ test {{ other", Root))
     assert(withText === List(ConstantPlaceholder("some {{ test {{ other")))
 
     val withReplaceables = Format.parseSourceKey(new Translation("some {{ {x} and {test} plus {{{y}} or {{{test2} end", Root))
     assert(withReplaceables === List(ConstantPlaceholder("some {{ "),
-        TypedPlaceholder("x", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
-        ConstantPlaceholder(" and "),
-        TypedPlaceholder("test", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
-        ConstantPlaceholder(" plus {{"),
-        TypedPlaceholder("y", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
-        ConstantPlaceholder("} or {{"),
-        TypedPlaceholder("test2", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
-        ConstantPlaceholder(" end")))
+      TypedPlaceholder("x", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+      ConstantPlaceholder(" and "),
+      TypedPlaceholder("test", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+      ConstantPlaceholder(" plus {{"),
+      TypedPlaceholder("y", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+      ConstantPlaceholder("} or {{"),
+      TypedPlaceholder("test2", Root.getDomain("plain").getOrElse(throw new NoSuchElementException)),
+      ConstantPlaceholder(" end")))
 
-    val adapter = new MapAdapter(Map("Hello {{ {plain(plain(name))}" -> "Hallo {{{name} {{neu"))
+    val adapter = new MapAdapter(Map("Hello {{ {plain(name)}" -> "Hallo {{{name} {{neu"))
     val translated = new Translation("Hello {{ {name}", Root)(adapter, "name" -> "Fairy")
     assert(translated === "Hallo {Fairy {neu")
   }
@@ -87,6 +88,17 @@ class Parsing extends FunSuite {
   test("build translation key from values") {
     val translationKey = Format.buildTranslationKey(new Translation("{number(x)} trees", de), Map("x" -> 0))
     assert(translationKey === "{zero(number(x))} trees")
+  }
+
+  test("Single categories are omitted") {
+    // Category needs to be omitted if there is only 1 in domain.
+    val translationKeySingleCategory = Format.buildTranslationKey(new Translation("{plain(x)} test", de), Map("x" -> "abc"))
+    assert(translationKeySingleCategory === "{plain(x)} test")
+
+    val translationKeys = Format.buildAllTranslationKeys(new Translation("a {x} b {plain(y)} c {number(z)} d", en))
+    assert(translationKeys === Set(
+      "a {plain(x)} b {plain(y)} c {zero(number(z))} d",
+      "a {plain(x)} b {plain(y)} c {one(number(z))} d"))
   }
 
   test("translate number") {

@@ -40,7 +40,7 @@ class Java extends FunSuite {
     fw.close()
 
     val je = new JavaExtractor(src, new ExtractionHint(Seq("t")))
-    assert(je.extract(Root) === Set("{one(number(varName))} blub!", "annotated"))
+    assert(je.extract(Root) === Set("{number(varName)} blub!", "annotated"))
     assert(je.extract(de) === Set("{one(number(varName))} blub!", "{zero(number(varName))} blub!", "annotated"))
 
     val jeQuoted = new JavaExtractor(src, new ExtractionHint(Seq("tQuoted")))
@@ -50,13 +50,13 @@ class Java extends FunSuite {
     assert(jeQuotedSimple.extract(Root) === Set("a {{ b", "annotated"))
 
     val jeQuotedPlaceholder = new JavaExtractor(src, new ExtractionHint(Seq("tQuotedPlaceholder")))
-    assert(jeQuotedPlaceholder.extract(Root) === Set("a {{ {plain(plain(x))} {{{plain(plain(y))} end", "annotated"))
+    assert(jeQuotedPlaceholder.extract(Root) === Set("a {{ {plain(x)} {{{plain(y)} end", "annotated"))
   }
-  
+
   test("Bogus arguments to translation call") {
-	  val src = File.createTempFile("test", ".java")
-			  val fw = new FileWriter(src)
-	  fw.write("""import translatables.TranslationKey;
+    val src = File.createTempFile("test", ".java")
+    val fw = new FileWriter(src)
+    fw.write("""import translatables.TranslationKey;
 			  
 			  class Test {
 	      
@@ -82,10 +82,10 @@ class Java extends FunSuite {
 			  	t(variable);
 				  }
 			  }""")
-			  fw.close()
-			  
-			  val je = new JavaExtractor(src, new ExtractionHint(Seq("t")))
-	  assert(je.extract(Root) === Set(""))
-	  assert(je.extract(de) === Set(""))
+    fw.close()
+
+    val je = new JavaExtractor(src, new ExtractionHint(Seq("t")))
+    assert(je.extract(Root) === Set(""))
+    assert(je.extract(de) === Set(""))
   }
 }

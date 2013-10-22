@@ -134,7 +134,13 @@ object Format {
           case Some(value) => value
           case None => throw new NoSuchElementException(DoTranslate.doTranslate("Missing value for placeholder {0} of source key {1}.", name, translation.sourceKey))
         }).name
-        "{" + categoryName + "(" + domain.name + "(" + name + "))}"
+        if (domain.categories.isDefinedAt(1)) {
+          // Wrap in category and placeholder if domains hosts more than 1 category.
+          "{" + categoryName + "(" + domain.name + "(" + name + "))}"
+        } else {
+          // Only wrap in domain if it hosts only 1 category.
+          "{" + domain.name + "(" + name + ")}"
+        }
       }
     }).mkString
   }
@@ -152,16 +158,19 @@ object Format {
   def buildAllTranslationKeys(translation: Translation): Set[String] = {
     val trans = parseSourceKey(translation)
     val variants = trans.filter(_.isInstanceOf[TypedPlaceholder]).flatMap {
-      case TypedPlaceholder(name, domain) => for (cat <- domain.categories) yield (name, domain.name, cat.name)
+      case TypedPlaceholder(name, domain) => for (cat <- domain.categories) yield (name, domain, cat.name)
     }.toSet
     val grouped = variants.groupBy(_._1)
-    def bind(trans: Set[List[Placeholder]], groups: Map[String, Set[(String, String, String)]]): Set[String] = {
+    def bind(trans: Set[List[Placeholder]], groups: Map[String, Set[(String, Domain, String)]]): Set[String] = {
       if (groups.isEmpty) {
         for (te <- trans) yield te.map { case ConstantPlaceholder(content) => content }.mkString
       } else {
         val (phName, fullCategories) = groups.head
         val ex = for (fc <- fullCategories; te <- trans) yield te.map(_ match {
-          case TypedPlaceholder(name, domain) if name == phName => ConstantPlaceholder("{" + fc._3 + "(" + fc._2 + "(" + phName + "))}")
+          // Placeholder for domain with at least 2 categories.
+          case TypedPlaceholder(name, domain) if name == phName && domain.categories.isDefinedAt(1) => ConstantPlaceholder("{" + fc._3 + "(" + fc._2.name + "(" + phName + "))}")
+          // Placeholder for domain with 1 category has no category printed.
+          case TypedPlaceholder(name, domain) if name == phName => ConstantPlaceholder("{" + fc._2.name + "(" + phName + ")}")
           case other => other
         })
         bind(ex, groups.tail)
