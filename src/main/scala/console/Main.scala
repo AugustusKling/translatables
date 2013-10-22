@@ -2,38 +2,25 @@ package console
 
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.FileWriter
 import java.util.Locale
-import java.util.Properties
-import scala.collection.JavaConverters
+
 import scala.collection.immutable.TreeMap
-import scala.io.Source
+import scala.util.matching.Regex
+
 import extract.ExtractionHint
 import extract.JavaExtractor
 import extract.ScalaExtractor
 import languages.de
 import languages.en
 import languages.Root
-import serialization.Json
+import serialization.JsonFormat
+import serialization.POFormat
+import serialization.PropertiesFormat
 import translatables.DoTranslate
 import translatables.DoTranslate.doTranslate
 import translatables.Language
 import translatables.StoredTranslation
 import translatables.adapter.JsonAdapter
-import translatables.adapter.POAdapter
-import serialization.POParser.POTranslation
-import translatables.Format
-import translatables.Translation
-import translatables.ConstantPlaceholder
-import translatables.Replaceable
-import translatables.Placeholder
-import translatables.TypedPlaceholder
-import scala.util.matching.Regex
-import serialization.POFormat
-import serialization.JsonFormat
-import serialization.PropertiesFormat
 
 /**
  * Configuration for extract command.
