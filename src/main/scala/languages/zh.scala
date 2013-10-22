@@ -17,7 +17,7 @@ import domains.numbers.Rule0
 object zh extends Language(Locale.CHINESE, List(
   new Rule0(Locale.CHINESE),
   new Date(Locale.CHINESE), new Time(Locale.CHINESE),
-  new Currency(Locale.CHINESE, List(new Category("digits", _ => true)))),
+  new Currency(Locale.CHINESE)),
   // Fallback language.
   Some(Root)) {
 

@@ -11,5 +11,5 @@ import translatables.Category
 object ja extends Language(Locale.JAPANESE, List(
   new Rule0(Locale.JAPANESE),
   new Date(Locale.JAPANESE), new Time(Locale.JAPANESE),
-  new Currency(Locale.JAPANESE, List(new Category("digits", _ => true)))),
+  new Currency(Locale.JAPANESE)),
   Some(Root))

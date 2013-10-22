@@ -22,7 +22,7 @@ object en extends Language(Locale.ENGLISH, List(
     new Category(Gender.Male.toString, _ == Gender.Male),
     new Category(Gender.Female.toString, _ == Gender.Female))),
   new Date(Locale.ENGLISH), new Time(Locale.ENGLISH),
-  new Currency(Locale.ENGLISH, List(new Category("digits", _ => true)))),
+  new Currency(Locale.ENGLISH)),
   // Fallback language.
   Some(Root)) {
 

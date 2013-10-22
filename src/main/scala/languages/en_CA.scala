@@ -11,5 +11,5 @@ import translatables.Category
 object en_CA extends Language(Locale.CANADA, List(
   new Rule1(Locale.CANADA),
   new Date(Locale.CANADA), new Time(Locale.CANADA),
-  new Currency(Locale.CANADA, List(new Category("digits", _ => true)))),
+  new Currency(Locale.CANADA)),
   Some(Root))

@@ -17,7 +17,7 @@ import domains.numbers.Rule0
 object zh_TW extends Language(Locale.TAIWAN, List(
   new Rule0(Locale.TAIWAN),
   new Date(Locale.TAIWAN), new Time(Locale.TAIWAN),
-  new Currency(Locale.TAIWAN, List(new Category("digits", _ => true)))),
+  new Currency(Locale.TAIWAN)),
   // Fallback language.
   Some(Root)) {
 

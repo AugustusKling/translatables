@@ -254,6 +254,6 @@ object Language {
       pluralizationRuleLanguageCountry.getOrElse(pluralizationRuleLanguage.getOrElse(
         new Number(locale, List(new Category("one", _ => true))))),
       new Date(locale), new Time(locale),
-      new Currency(locale, List(new Category("digits", _ => true)))), Some(Root))
+      new Currency(locale)), Some(Root))
   }
 }

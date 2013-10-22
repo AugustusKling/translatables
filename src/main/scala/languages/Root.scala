@@ -17,5 +17,5 @@ object Root extends Language(Locale.ROOT, List(
   new Number(Locale.ROOT, List(new Category("one", _ => true))),
   new Domain("gender", List(new Category("neuter", _ => true))),
   new Date(Locale.ROOT), new Time(Locale.ROOT),
-  new Currency(Locale.ROOT, List(new Category("digits", _ => true)))), None) {
+  new Currency(Locale.ROOT)), None) {
 }

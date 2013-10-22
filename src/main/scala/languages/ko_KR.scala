@@ -11,5 +11,5 @@ import translatables.Category
 object ko_KR extends Language(Locale.KOREA, List(
   new Rule0(Locale.KOREA),
   new Date(Locale.KOREA), new Time(Locale.KOREA),
-  new Currency(Locale.KOREA, List(new Category("digits", _ => true)))),
+  new Currency(Locale.KOREA)),
   Some(Root))

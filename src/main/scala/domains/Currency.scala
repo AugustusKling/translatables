@@ -9,7 +9,7 @@ import java.text.DecimalFormat
  * Monetary value. Displays general currency symbol for numbers, for (Number, Currency) tuples values with matching currency symbol.
  * @param locale Formatting settings.
  */
-class Currency(locale: Locale, categories: List[Category]) extends Domain("currency", categories) {
+class Currency(locale: Locale) extends Domain("currency", List(new Category("digits", _ => true))) {
   override def format(value: Any): String = {
     val formatter = NumberFormat.getCurrencyInstance(locale)
     value match {

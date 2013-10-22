@@ -11,5 +11,5 @@ import translatables.Category
 object it_IT extends Language(Locale.ITALY, List(
   new Rule1(Locale.ITALY),
   new Date(Locale.ITALY), new Time(Locale.ITALY),
-  new Currency(Locale.ITALY, List(new Category("digits", _ => true)))),
+  new Currency(Locale.ITALY)),
   Some(Root))
