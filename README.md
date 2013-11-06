@@ -157,4 +157,4 @@ The rest of the application simply uses the method as does not bother more about
 Feedback
 --------
 
-Please file any problems in this repository's issue tracker.
+Please file any problems in this repository's issue tracker. More documentation can be found in the `doc` folder.
