@@ -54,6 +54,24 @@ object Format {
   def parseTranslation(translation: String): List[Placeholder] = parseKeyOrTranlation(translation, translationEscaping)
 
   /**
+   * Splits a text such that each pattern match is standing solely.
+   * @param Pattern to use as split condition. Matched characters will be retained in return value.
+   * @param text Text to split.
+   * @return Chopped up text without empty strings.
+   */
+  private def chop(pattern: Regex, text: CharSequence): List[CharSequence] = {
+    if (text == "") {
+      List()
+    } else {
+      pattern.findFirstMatchIn(text) match {
+        case None => List(text)
+        case Some(mat) if mat.before == "" => mat.matched :: chop(pattern, mat.after)
+        case Some(mat) => mat.before :: mat.matched :: chop(pattern, mat.after)
+      }
+    }
+  }
+
+  /**
    * Parses either a source key, translation key or translation.
    * @param translation Serialized key or translation.
    * @param escaping How escape character should be replaced before returning.
@@ -70,13 +88,15 @@ object Format {
       val unescaped = "\\{\\{".r.split(translation).toList
       // Build placeholder list for each fragment.
       val placeholderLists = unescaped map { translation =>
-        val fragments = "\\{[^{}]+\\}".r.split(translation) map (new ConstantPlaceholder(_))
-        val placeholders = (for (m <- "\\{([^{}]+)\\}".r.findAllIn(translation).matchData) yield new Replaceable(m.subgroups(0))).toList
-        val coll = for (i <- 0 until (fragments.size + placeholders.size)) yield if (i % 2 == 0) fragments(i / 2) else placeholders(i / 2)
-        coll.filterNot(_ match {
-          case ConstantPlaceholder(content) => content == ""
-          case _ => false
-        }).toList
+        val pat = "\\{[^{}]+?\\}".r
+        val fragments = chop(pat, translation)
+        fragments.map((frag: CharSequence) => {
+          val subgroup = "\\{([^{}]+)\\}".r.findFirstMatchIn(frag)
+          subgroup match {
+            case Some(m) => new Replaceable(m.subgroups(0))
+            case _ => new ConstantPlaceholder(frag.toString)
+          }
+        })
       }
       // Concatenate fragment lists.
       val withAdjacentConstants = placeholderLists.tail.foldLeft(placeholderLists.head)((p1, p2) => p1 ::: ConstantPlaceholder(escaping._2) :: p2)

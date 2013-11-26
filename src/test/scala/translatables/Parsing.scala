@@ -8,6 +8,7 @@ import languages.de
 import translatables.adapter.MapAdapter
 import java.util.Locale
 import languages.en
+import java.util.Calendar
 
 @RunWith(classOf[JUnitRunner])
 class Parsing extends FunSuite {
@@ -138,4 +139,15 @@ class Parsing extends FunSuite {
     assert(new Translation("fifnzfn832{number(x)}jsd skjfsd {y}jsd", Root)(adapter, "x" -> 5, "y" -> "--") === "fifnzfn8325jsd skjfsd --jsd")
   }
 
+  test("date only") {
+    val adapter = new MapAdapter(Map.empty[String, String])
+    val cal = Calendar.getInstance()
+    cal.set(2013, 9, 17)
+    assert(Translation.getVariadic(Root, adapter, "{date(0)}", cal) === "2013-10-17")
+  }
+
+  test("placeholders only") {
+    val adapter = new MapAdapter(Map.empty[String, String])
+    assert(Translation.getVariadic(Root, adapter, "{0}{1}", "A", "B") === "AB")
+  }
 }
